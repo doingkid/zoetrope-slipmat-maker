@@ -25,4 +25,3 @@ The numbered proof marks the 7-inch edge. Only the clean PNG is artwork. A real 
 
 The outer 54-frame timing depends on true 33⅓ RPM and constant 30 fps; the inner 40-frame timing depends on 45 RPM and constant 30 fps. The other row will not animate at its intended speed. Test a print and recording with short exposure, and check the actual record diameter and spindle hole. Obtain the print shop's hole, bleed, and color requirements before production.
 
-For use as a ChatGPT/Codex Agent Skill, load the repository folder containing `SKILL.md`; that file invokes the included script.
