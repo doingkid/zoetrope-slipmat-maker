@@ -151,11 +151,13 @@ def inner_ring_dimensions(frames, size):
 
 
 def compose(frames, size, margin, max_height, rotation, proof_path=None,
-            inner_pattern='psychedelic', inner_ring='seven-inch', center_mark_mm=1.0):
+            inner_pattern='psychedelic', inner_ring='seven-inch', center_mark_mm=1.0,
+            background='black'):
     width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1), fill=(0, 0, 0, 255))
+    disc_color = (255, 255, 255, 255) if background == 'white' else (0, 0, 0, 255)
+    ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1), fill=disc_color)
     inner_dims = inner_ring_dimensions(frames, size) if inner_ring == 'seven-inch' else None
     if inner_pattern == 'psychedelic':
         draw_inner_pattern(artwork, inner_dims[3] - 8*size/3600 if inner_dims
@@ -210,6 +212,15 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
     mask = Image.new('L', (size, size))
     ImageDraw.Draw(mask).ellipse((0, 0, size - 1, size - 1), fill=255)
     artwork.putalpha(mask)
+    if background == 'white':
+        # White square prints without a dark fill; the circle remains visible
+        # as a thin trim guide on ordinary white paper.
+        canvas = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+        canvas.alpha_composite(artwork)
+        artwork = canvas
+        ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1),
+                                       outline=(0, 0, 0, 255),
+                                       width=max(2, round(size / 900)))
 
     # A pilot mark for locating the hole, not a printed outline of the hole.
     # Its 1 mm default diameter is smaller than a turntable spindle and will
@@ -219,7 +230,8 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
         left = (size - mark_pixels) // 2
         right = left + mark_pixels - 1
         ImageDraw.Draw(artwork).ellipse((left, left, right, right),
-                                       fill=(255, 255, 255, 255))
+                                       fill=(0, 0, 0, 255) if background == 'white'
+                                            else (255, 255, 255, 255))
 
     if proof_path:
         proof = artwork.copy()
@@ -230,10 +242,12 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
             theta = math.radians(-90 + bearing)
             point = (center + label_radius * math.cos(theta),
                      center + label_radius * math.sin(theta))
-            labels.text(point, str(number), font=font, anchor='mm', fill='yellow')
+            labels.text(point, str(number), font=font, anchor='mm',
+                        fill='black' if background == 'white' else 'yellow')
         if inner_dims:
             labels.ellipse((center-edge, center-edge, center+edge, center+edge),
-                           outline='yellow', width=max(2, size//900))
+                           outline='black' if background == 'white' else 'yellow',
+                           width=max(2, size//900))
         proof.save(proof_path)
 
     return artwork, {'frames': N, 'angular_spacing_degrees': step,
@@ -242,6 +256,7 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
                      'rendered_canvas': [width, height], 'anchor_radius_px': radius,
                      'disc_px': size, 'outer_margin_mm': margin,
                      'inner_ring': inner_ring,
+                     'background': background,
                      'center_mark_diameter_mm': center_mark_mm,
                      'inner_frames': INNER_N if inner_dims else 0,
                      'inner_source_indices': [round(i*N/INNER_N) % N + 1
@@ -266,6 +281,8 @@ def main():
                         help='40 poses outside a 7-inch record for 45 RPM (default: seven-inch)')
     parser.add_argument('--center-mark-mm', type=float, default=1.0,
                         help='diameter of the central pilot dot, 0 to 1 mm (default: 1)')
+    parser.add_argument('--background', choices=('black', 'white'), default='black',
+                        help='white saves ink and adds a black disc outline (default: black)')
     args = parser.parse_args()
     try:
         if args.size < 540 or args.size > 12000:
@@ -281,7 +298,8 @@ def main():
         frames = read_frames(args.frames_zip)
         artwork, report = compose(frames, args.size, args.margin_mm,
                                   args.max_height_mm, args.rotation, args.proof,
-                                  args.inner_pattern, args.inner_ring, args.center_mark_mm)
+                                  args.inner_pattern, args.inner_ring, args.center_mark_mm,
+                                  args.background)
         report['inner_pattern'] = args.inner_pattern
         artwork.save(args.output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
