@@ -1,6 +1,6 @@
 # Zoetrope Slipmat Maker
 
-A deterministic compositor for a black 12-inch zoetrope slipmat. Supply 54 transparent animation frames; it places them in one radial ring for a clockwise 33⅓ RPM turntable filmed at a fixed 30 fps.
+A deterministic compositor for a black 12-inch zoetrope slipmat. Supply 54 transparent animation frames. By default it places 54 poses in an outer ring for 33⅓ RPM and 40 poses in an inner ring for 45 RPM, both filmed at fixed 30 fps.
 
 ## Input
 
@@ -15,26 +15,14 @@ python3 -m pip install Pillow
 python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png
 ```
 
-For a dense geometric inner design, add `--inner-pattern psychedelic`:
+The default 3600 × 3600 PNG contains:
 
-```bash
-python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png --inner-pattern psychedelic
-```
+- Outer 54 positions for a clockwise 33⅓ RPM platter, numbered counterclockwise from 12 o'clock.
+- Inner 40 positions at the rim of a centered 7-inch record for 45 RPM. The script samples 40 evenly spaced poses from the 54 input frames, without generating new poses. Their visible feet sit about 12 px outside the 7-inch edge.
+- Reggae-color green, gold, and red geometric artwork in the center, plus concentric bands between the rows. The inner geometry has 40-fold symmetry; the bands read consistently at either speed.
 
-To put a second copy of the same 54-frame dance just outside the rim of a centered 7-inch record, add `--inner-ring seven-inch`:
+The numbered proof marks the 7-inch edge. Only the clean PNG is artwork. A real 7-inch record covers the printed pattern inside its rim. Use `--inner-ring none` or `--inner-pattern none` to disable either default. Run `--help` for other options.
 
-```bash
-python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png --inner-pattern psychedelic --inner-ring seven-inch
-```
-
-The script scales the inner figures to fit 54 positions and places their visible feet about 12 px outside the 7-inch edge on a 3600 px 12-inch disc. The proof outlines that edge. A real 7-inch record covers the printed inner pattern underneath it; leave the pattern option off if the record will always be present. Check physical positioning against your actual record and spindle hole before printing.
-
-The pattern uses reggae-inspired green, gold, and red on black, with 54-fold symmetry. It adapts to the inner edge of the supplied frame canvases, leaving a small gap. The spindle area stays clear. Omit the option for the original plain black center.
-
-The output is a 3600 × 3600 PNG: black circular disc on a transparent square. The numbered proof helps check the sequence; only the clean PNG is artwork. Run `--help` for dimensions and platter direction.
-
-Frame 1 is at 12 o'clock. Printed frame numbers proceed counterclockwise so a clockwise platter brings frames 1, 2, 3… through the top image position. The script validates the exact 54 distinct numbers, consistent canvas dimensions, transparency, radial placement, and one shared scale. It does not generate or alter poses.
-
-The 54-frame timing depends on true 33⅓ RPM and constant 30 fps. Test a print and recording with a short exposure. Obtain the print shop's hole, bleed, and color requirements before production.
+The outer 54-frame timing depends on true 33⅓ RPM and constant 30 fps; the inner 40-frame timing depends on 45 RPM and constant 30 fps. The other row will not animate at its intended speed. Test a print and recording with short exposure, and check the actual record diameter and spindle hole. Obtain the print shop's hole, bleed, and color requirements before production.
 
 For use as a ChatGPT/Codex Agent Skill, load the repository folder containing `SKILL.md`; that file invokes the included script.
