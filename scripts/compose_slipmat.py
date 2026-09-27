@@ -96,7 +96,7 @@ def draw_inner_pattern(artwork, inner_limit):
         raise ValueError('Frames leave too little room for the inner pattern')
     layer = Image.new('RGBA', artwork.size)
     draw = ImageDraw.Draw(layer)
-    teal, pink, gold = (40, 218, 198, 235), (246, 79, 145, 235), (255, 204, 91, 235)
+    green, red, gold = (42, 181, 83, 235), (221, 55, 54, 235), (247, 202, 67, 235)
 
     def point(radius, angle):
         angle = math.radians(angle - 90)
@@ -107,27 +107,27 @@ def draw_inner_pattern(artwork, inner_limit):
         draw.ellipse((center-radius, center-radius, center+radius, center+radius),
                      outline=color, width=max(2, round(width * unit)))
 
-    for fraction, width, color in ((1, 13, teal), (.955, 6, pink),
-                                   (.805, 12, gold), (.785, 6, teal),
-                                   (.625, 14, pink), (.60, 5, gold),
-                                   (.44, 13, teal), (.42, 5, pink),
-                                   (.255, 11, gold), (.14, 9, pink)):
+    for fraction, width, color in ((1, 13, green), (.955, 6, red),
+                                   (.805, 12, gold), (.785, 6, green),
+                                   (.625, 14, red), (.60, 5, gold),
+                                   (.44, 13, green), (.42, 5, red),
+                                   (.255, 11, gold), (.14, 9, red)):
         ring(fraction, width, color)
     for index in range(N):
         angle = index * 360 / N
         # Every ring repeats after one frame step, so it stays in place in
         # ideal 30 fps / 33⅓ RPM capture. Avoid fine radial lines.
         draw.polygon([point(outer*f, angle+a) for f, a in
-                      ((.925, -2.35), (.99, 0), (.925, 2.35), (.955, 0))], fill=teal)
+                      ((.925, -2.35), (.99, 0), (.925, 2.35), (.955, 0))], fill=green)
         draw.polygon([point(outer*f, angle+a) for f, a in
                       ((.83, 0), (.865, 2.0), (.83, 4.0), (.795, 2.0))],
-                     fill=pink)
+                     fill=red)
         draw.polygon([point(outer*f, angle+a) for f, a in
-                      ((.715, -2.1), (.76, 0), (.715, 2.1), (.67, 0))], fill=teal)
+                      ((.715, -2.1), (.76, 0), (.715, 2.1), (.67, 0))], fill=green)
         draw.polygon([point(outer*f, angle+a) for f, a in
                       ((.545, 0), (.585, 2.0), (.545, 4.0), (.505, 2.0))],
                      fill=gold)
-        for fraction, radius, color in ((.355, 12, teal), (.185, 9, gold)):
+        for fraction, radius, color in ((.355, 12, green), (.185, 9, gold)):
             x, y = point(outer*fraction, angle)
             r = max(2, radius*unit)
             draw.ellipse((x-r, y-r, x+r, y+r), fill=color)
