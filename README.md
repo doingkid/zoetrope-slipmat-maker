@@ -15,6 +15,14 @@ python3 -m pip install Pillow
 python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png
 ```
 
+For an ink-saving home-printer test, use a white background. This produces an opaque white square with a thin black 12-inch circle outline and a black center pilot dot; the character frames and colored pattern remain in place:
+
+```bash
+python3 scripts/compose_slipmat.py frames.zip slipmat_white.png --proof proof_white.png --background white
+```
+
+Print at 100% size (304.8 mm circle diameter). The center dot marks the hole location, not the hole diameter. The white version is useful for alignment and animation tests; check character contrast before choosing it as final artwork.
+
 The default 3600 × 3600 PNG contains:
 
 - Outer 54 positions for a clockwise 33⅓ RPM platter, numbered counterclockwise from 12 o'clock.
