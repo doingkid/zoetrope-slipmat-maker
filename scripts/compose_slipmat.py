@@ -86,11 +86,62 @@ def dimensions(source_size, output_size, outer_margin_mm, max_height_mm):
     return width, height, radius, cap
 
 
-def compose(frames, size, margin, max_height, rotation, proof_path=None):
+def draw_inner_pattern(artwork, inner_limit):
+    """Draw a 54-fold geometric pattern clear of the animation canvases."""
+    size = artwork.width
+    center = size / 2
+    unit = size / 3600
+    outer = inner_limit - 45 * unit
+    if outer < 650 * unit:
+        raise ValueError('Frames leave too little room for the inner pattern')
+    layer = Image.new('RGBA', artwork.size)
+    draw = ImageDraw.Draw(layer)
+    teal, pink, gold = (40, 218, 198, 235), (246, 79, 145, 235), (255, 204, 91, 235)
+
+    def point(radius, angle):
+        angle = math.radians(angle - 90)
+        return center + radius * math.cos(angle), center + radius * math.sin(angle)
+
+    def ring(fraction, width, color):
+        radius = outer * fraction
+        draw.ellipse((center-radius, center-radius, center+radius, center+radius),
+                     outline=color, width=max(2, round(width * unit)))
+
+    for fraction, width, color in ((1, 13, teal), (.955, 6, pink),
+                                   (.805, 12, gold), (.785, 6, teal),
+                                   (.625, 14, pink), (.60, 5, gold),
+                                   (.44, 13, teal), (.42, 5, pink),
+                                   (.255, 11, gold), (.14, 9, pink)):
+        ring(fraction, width, color)
+    for index in range(N):
+        angle = index * 360 / N
+        # Every ring repeats after one frame step, so it stays in place in
+        # ideal 30 fps / 33⅓ RPM capture. Avoid fine radial lines.
+        draw.polygon([point(outer*f, angle+a) for f, a in
+                      ((.925, -2.35), (.99, 0), (.925, 2.35), (.955, 0))], fill=teal)
+        draw.polygon([point(outer*f, angle+a) for f, a in
+                      ((.83, 0), (.865, 2.0), (.83, 4.0), (.795, 2.0))],
+                     fill=pink)
+        draw.polygon([point(outer*f, angle+a) for f, a in
+                      ((.715, -2.1), (.76, 0), (.715, 2.1), (.67, 0))], fill=teal)
+        draw.polygon([point(outer*f, angle+a) for f, a in
+                      ((.545, 0), (.585, 2.0), (.545, 4.0), (.505, 2.0))],
+                     fill=gold)
+        for fraction, radius, color in ((.355, 12, teal), (.185, 9, gold)):
+            x, y = point(outer*fraction, angle)
+            r = max(2, radius*unit)
+            draw.ellipse((x-r, y-r, x+r, y+r), fill=color)
+    artwork.alpha_composite(layer)
+
+
+def compose(frames, size, margin, max_height, rotation, proof_path=None,
+            inner_pattern='none'):
     width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1), fill=(0, 0, 0, 255))
+    if inner_pattern == 'psychedelic':
+        draw_inner_pattern(artwork, cap - height)
     step = 360 / N
     # Printed order is opposite the platter rotation: next pose moves into top.
     sign = -1 if rotation == 'cw' else 1
@@ -141,6 +192,8 @@ def main():
                         help='physical platter rotation viewed from above (default: cw)')
     parser.add_argument('--margin-mm', type=float, default=3.0)
     parser.add_argument('--max-height-mm', type=float, default=42.0)
+    parser.add_argument('--inner-pattern', choices=('none', 'psychedelic'), default='none',
+                        help='optional geometric 54-fold inner artwork')
     args = parser.parse_args()
     try:
         if args.size < 540 or args.size > 12000:
@@ -153,7 +206,9 @@ def main():
             raise ValueError('Proof must be a PNG')
         frames = read_frames(args.frames_zip)
         artwork, report = compose(frames, args.size, args.margin_mm,
-                                  args.max_height_mm, args.rotation, args.proof)
+                                  args.max_height_mm, args.rotation, args.proof,
+                                  args.inner_pattern)
+        report['inner_pattern'] = args.inner_pattern
         artwork.save(args.output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
     except (ValueError, OSError, zipfile.BadZipFile) as exc:
