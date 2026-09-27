@@ -21,6 +21,14 @@ For a dense geometric inner design, add `--inner-pattern psychedelic`:
 python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png --inner-pattern psychedelic
 ```
 
+To put a second copy of the same 54-frame dance just outside the rim of a centered 7-inch record, add `--inner-ring seven-inch`:
+
+```bash
+python3 scripts/compose_slipmat.py frames.zip slipmat.png --proof proof.png --inner-pattern psychedelic --inner-ring seven-inch
+```
+
+The script scales the inner figures to fit 54 positions and places their visible feet about 12 px outside the 7-inch edge on a 3600 px 12-inch disc. The proof outlines that edge. A real 7-inch record covers the printed inner pattern underneath it; leave the pattern option off if the record will always be present. Check physical positioning against your actual record and spindle hole before printing.
+
 The pattern uses reggae-inspired green, gold, and red on black, with 54-fold symmetry. It adapts to the inner edge of the supplied frame canvases, leaving a small gap. The spindle area stays clear. Omit the option for the original plain black center.
 
 The output is a 3600 × 3600 PNG: black circular disc on a transparent square. The numbered proof helps check the sequence; only the clean PNG is artwork. Run `--help` for dimensions and platter direction.
