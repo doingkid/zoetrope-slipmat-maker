@@ -134,14 +134,31 @@ def draw_inner_pattern(artwork, inner_limit):
     artwork.alpha_composite(layer)
 
 
+def inner_ring_dimensions(frames, size):
+    """Fit a second row with visible feet just outside a 7-inch record."""
+    sw, sh = frames[0].size
+    edge = size * 7 / 24  # 7-inch diameter compared with a 12-inch disc.
+    unit = size / 3600
+    bottom = max(frame.getchannel('A').getbbox()[3] for frame in frames)
+    # Keep each full canvas inside its angular sector at the inner edge.
+    sector_width = 2 * edge * math.tan(math.pi / N) * .82
+    scale = min(260*unit/sh, sector_width/sw)
+    width, height = max(1, round(sw*scale)), max(1, round(sh*scale))
+    # 12 px clearance from the 7-inch edge to the deepest visible foot.
+    radius = edge + 12*unit + height*bottom/sh - height/2
+    return width, height, radius, edge
+
+
 def compose(frames, size, margin, max_height, rotation, proof_path=None,
-            inner_pattern='none'):
+            inner_pattern='none', inner_ring='none'):
     width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1), fill=(0, 0, 0, 255))
+    inner_dims = inner_ring_dimensions(frames, size) if inner_ring == 'seven-inch' else None
     if inner_pattern == 'psychedelic':
-        draw_inner_pattern(artwork, cap - height)
+        draw_inner_pattern(artwork, inner_dims[3] - 8*size/3600 if inner_dims
+                           else cap - height)
     step = 360 / N
     # Printed order is opposite the platter rotation: next pose moves into top.
     sign = -1 if rotation == 'cw' else 1
@@ -157,6 +174,17 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
         top = round(y - rotated.height / 2)
         artwork.alpha_composite(rotated, (left, top))
         positions.append((index + 1, bearing))
+    if inner_dims:
+        iw, ih, ir, edge = inner_dims
+        for index, source in enumerate(frames):
+            bearing = sign * index * step
+            theta = math.radians(-90 + bearing)
+            x = center + ir * math.cos(theta)
+            y = center + ir * math.sin(theta)
+            resized = source.resize((iw, ih), Image.Resampling.LANCZOS)
+            rotated = resized.rotate(-bearing, resample=Image.Resampling.BICUBIC, expand=True)
+            artwork.alpha_composite(rotated, (round(x-rotated.width/2),
+                                              round(y-rotated.height/2)))
 
     # Clip to the circular print boundary after compositing.
     mask = Image.new('L', (size, size))
@@ -173,13 +201,19 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
             point = (center + label_radius * math.cos(theta),
                      center + label_radius * math.sin(theta))
             labels.text(point, str(number), font=font, anchor='mm', fill='yellow')
+        if inner_dims:
+            labels.ellipse((center-edge, center-edge, center+edge, center+edge),
+                           outline='yellow', width=max(2, size//900))
         proof.save(proof_path)
 
     return artwork, {'frames': N, 'angular_spacing_degrees': step,
                      'printed_frame_order': 'counterclockwise' if rotation == 'cw' else 'clockwise',
                      'platter_rotation': rotation, 'source_canvas': frames[0].size,
                      'rendered_canvas': [width, height], 'anchor_radius_px': radius,
-                     'disc_px': size, 'outer_margin_mm': margin}
+                     'disc_px': size, 'outer_margin_mm': margin,
+                     'inner_ring': inner_ring,
+                     'seven_inch_edge_px': inner_dims[3] if inner_dims else None,
+                     'inner_rendered_canvas': list(inner_dims[:2]) if inner_dims else None}
 
 
 def main():
@@ -194,6 +228,8 @@ def main():
     parser.add_argument('--max-height-mm', type=float, default=42.0)
     parser.add_argument('--inner-pattern', choices=('none', 'psychedelic'), default='none',
                         help='optional geometric 54-fold inner artwork')
+    parser.add_argument('--inner-ring', choices=('none', 'seven-inch'), default='none',
+                        help='duplicate the 54 frames with feet just outside a 7-inch record')
     args = parser.parse_args()
     try:
         if args.size < 540 or args.size > 12000:
@@ -207,7 +243,7 @@ def main():
         frames = read_frames(args.frames_zip)
         artwork, report = compose(frames, args.size, args.margin_mm,
                                   args.max_height_mm, args.rotation, args.proof,
-                                  args.inner_pattern)
+                                  args.inner_pattern, args.inner_ring)
         report['inner_pattern'] = args.inner_pattern
         artwork.save(args.output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
