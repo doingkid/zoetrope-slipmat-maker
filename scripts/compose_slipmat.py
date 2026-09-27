@@ -151,7 +151,7 @@ def inner_ring_dimensions(frames, size):
 
 
 def compose(frames, size, margin, max_height, rotation, proof_path=None,
-            inner_pattern='psychedelic', inner_ring='seven-inch'):
+            inner_pattern='psychedelic', inner_ring='seven-inch', center_mark_mm=1.0):
     width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
@@ -211,6 +211,15 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
     ImageDraw.Draw(mask).ellipse((0, 0, size - 1, size - 1), fill=255)
     artwork.putalpha(mask)
 
+    # A pilot mark for locating the hole, not a printed outline of the hole.
+    # Its 1 mm default diameter is smaller than a turntable spindle and will
+    # disappear when the actual center hole is cut.
+    if center_mark_mm:
+        mark_radius = max(1, round(center_mark_mm * size / DIAMETER_MM / 2))
+        ImageDraw.Draw(artwork).ellipse((center-mark_radius, center-mark_radius,
+                                        center+mark_radius, center+mark_radius),
+                                       fill=(255, 255, 255, 255))
+
     if proof_path:
         proof = artwork.copy()
         labels = ImageDraw.Draw(proof)
@@ -232,6 +241,7 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
                      'rendered_canvas': [width, height], 'anchor_radius_px': radius,
                      'disc_px': size, 'outer_margin_mm': margin,
                      'inner_ring': inner_ring,
+                     'center_mark_diameter_mm': center_mark_mm,
                      'inner_frames': INNER_N if inner_dims else 0,
                      'inner_source_indices': [round(i*N/INNER_N) % N + 1
                                               for i in range(INNER_N)] if inner_dims else [],
@@ -253,12 +263,16 @@ def main():
                         help='geometric inner artwork (default: psychedelic)')
     parser.add_argument('--inner-ring', choices=('none', 'seven-inch'), default='seven-inch',
                         help='40 poses outside a 7-inch record for 45 RPM (default: seven-inch)')
+    parser.add_argument('--center-mark-mm', type=float, default=1.0,
+                        help='diameter of the central pilot dot, 0 to 1 mm (default: 1)')
     args = parser.parse_args()
     try:
         if args.size < 540 or args.size > 12000:
             raise ValueError('--size must be between 540 and 12000')
         if args.margin_mm < 1 or args.max_height_mm <= 0:
             raise ValueError('Margin must be at least 1 mm; maximum height must be positive')
+        if not 0 <= args.center_mark_mm <= 1:
+            raise ValueError('--center-mark-mm must be between 0 and 1 mm')
         if args.output == args.proof or args.output.suffix.lower() != '.png':
             raise ValueError('Output must be a PNG and differ from proof path')
         if args.proof and args.proof.suffix.lower() != '.png':
@@ -266,7 +280,7 @@ def main():
         frames = read_frames(args.frames_zip)
         artwork, report = compose(frames, args.size, args.margin_mm,
                                   args.max_height_mm, args.rotation, args.proof,
-                                  args.inner_pattern, args.inner_ring)
+                                  args.inner_pattern, args.inner_ring, args.center_mark_mm)
         report['inner_pattern'] = args.inner_pattern
         artwork.save(args.output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
