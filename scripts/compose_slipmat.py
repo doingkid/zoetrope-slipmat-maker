@@ -215,9 +215,10 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
     # Its 1 mm default diameter is smaller than a turntable spindle and will
     # disappear when the actual center hole is cut.
     if center_mark_mm:
-        mark_radius = max(1, round(center_mark_mm * size / DIAMETER_MM / 2))
-        ImageDraw.Draw(artwork).ellipse((center-mark_radius, center-mark_radius,
-                                        center+mark_radius, center+mark_radius),
+        mark_pixels = max(1, math.floor(center_mark_mm * size / DIAMETER_MM))
+        left = (size - mark_pixels) // 2
+        right = left + mark_pixels - 1
+        ImageDraw.Draw(artwork).ellipse((left, left, right, right),
                                        fill=(255, 255, 255, 255))
 
     if proof_path:
