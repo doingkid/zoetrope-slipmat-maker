@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, UnidentifiedImageError
 
 N = 54
+INNER_N = 40
 DIAMETER_MM = 304.8
 MAX_SOURCE_BYTES = 20_000_000
 MAX_PIXELS = 16_000_000
@@ -86,8 +87,8 @@ def dimensions(source_size, output_size, outer_margin_mm, max_height_mm):
     return width, height, radius, cap
 
 
-def draw_inner_pattern(artwork, inner_limit):
-    """Draw a 54-fold geometric pattern clear of the animation canvases."""
+def draw_inner_pattern(artwork, inner_limit, count):
+    """Draw a geometric pattern with the active ring's frame symmetry."""
     size = artwork.width
     center = size / 2
     unit = size / 3600
@@ -113,10 +114,10 @@ def draw_inner_pattern(artwork, inner_limit):
                                    (.44, 13, green), (.42, 5, red),
                                    (.255, 11, gold), (.14, 9, red)):
         ring(fraction, width, color)
-    for index in range(N):
-        angle = index * 360 / N
+    for index in range(count):
+        angle = index * 360 / count
         # Every ring repeats after one frame step, so it stays in place in
-        # ideal 30 fps / 33⅓ RPM capture. Avoid fine radial lines.
+        # ideal fixed-30-fps capture at the corresponding rotation speed.
         draw.polygon([point(outer*f, angle+a) for f, a in
                       ((.925, -2.35), (.99, 0), (.925, 2.35), (.955, 0))], fill=green)
         draw.polygon([point(outer*f, angle+a) for f, a in
@@ -141,7 +142,7 @@ def inner_ring_dimensions(frames, size):
     unit = size / 3600
     bottom = max(frame.getchannel('A').getbbox()[3] for frame in frames)
     # Keep each full canvas inside its angular sector at the inner edge.
-    sector_width = 2 * edge * math.tan(math.pi / N) * .82
+    sector_width = 2 * edge * math.tan(math.pi / INNER_N) * .82
     scale = min(260*unit/sh, sector_width/sw)
     width, height = max(1, round(sw*scale)), max(1, round(sh*scale))
     # 12 px clearance from the 7-inch edge to the deepest visible foot.
@@ -150,7 +151,7 @@ def inner_ring_dimensions(frames, size):
 
 
 def compose(frames, size, margin, max_height, rotation, proof_path=None,
-            inner_pattern='none', inner_ring='none'):
+            inner_pattern='psychedelic', inner_ring='seven-inch'):
     width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
@@ -158,7 +159,23 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
     inner_dims = inner_ring_dimensions(frames, size) if inner_ring == 'seven-inch' else None
     if inner_pattern == 'psychedelic':
         draw_inner_pattern(artwork, inner_dims[3] - 8*size/3600 if inner_dims
-                           else cap - height)
+                           else cap - height, INNER_N if inner_dims else N)
+    if inner_dims and inner_pattern == 'psychedelic':
+        # Circular bands read cleanly at both platter speeds. They occupy the
+        # gap between the two rows without crossing either character canvas.
+        iw, ih, ir, edge = inner_dims
+        gap_start = ir + ih/2 + 15*size/3600
+        gap_end = cap - height - 15*size/3600
+        if gap_end <= gap_start:
+            raise ValueError('The source frames leave no gap between the two rows')
+        bands = ImageDraw.Draw(artwork)
+        palette = ((42, 181, 83, 255), (247, 202, 67, 255), (221, 55, 54, 255))
+        span = gap_end-gap_start
+        for fraction, thickness, color in ((.16, 11, palette[0]), (.36, 8, palette[1]),
+                                           (.56, 13, palette[2]), (.78, 7, palette[1])):
+            r = gap_start + fraction*span
+            bands.ellipse((center-r, center-r, center+r, center+r), outline=color,
+                          width=max(2, round(thickness*size/3600)))
     step = 360 / N
     # Printed order is opposite the platter rotation: next pose moves into top.
     sign = -1 if rotation == 'cw' else 1
@@ -176,8 +193,11 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
         positions.append((index + 1, bearing))
     if inner_dims:
         iw, ih, ir, edge = inner_dims
-        for index, source in enumerate(frames):
-            bearing = sign * index * step
+        for index in range(INNER_N):
+            # Sample one complete 54-pose cycle at 40 equal time positions.
+            source_index = round(index * N / INNER_N) % N
+            source = frames[source_index]
+            bearing = sign * index * 360 / INNER_N
             theta = math.radians(-90 + bearing)
             x = center + ir * math.cos(theta)
             y = center + ir * math.sin(theta)
@@ -212,6 +232,9 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
                      'rendered_canvas': [width, height], 'anchor_radius_px': radius,
                      'disc_px': size, 'outer_margin_mm': margin,
                      'inner_ring': inner_ring,
+                     'inner_frames': INNER_N if inner_dims else 0,
+                     'inner_source_indices': [round(i*N/INNER_N) % N + 1
+                                              for i in range(INNER_N)] if inner_dims else [],
                      'seven_inch_edge_px': inner_dims[3] if inner_dims else None,
                      'inner_rendered_canvas': list(inner_dims[:2]) if inner_dims else None}
 
@@ -226,10 +249,10 @@ def main():
                         help='physical platter rotation viewed from above (default: cw)')
     parser.add_argument('--margin-mm', type=float, default=3.0)
     parser.add_argument('--max-height-mm', type=float, default=42.0)
-    parser.add_argument('--inner-pattern', choices=('none', 'psychedelic'), default='none',
-                        help='optional geometric 54-fold inner artwork')
-    parser.add_argument('--inner-ring', choices=('none', 'seven-inch'), default='none',
-                        help='duplicate the 54 frames with feet just outside a 7-inch record')
+    parser.add_argument('--inner-pattern', choices=('none', 'psychedelic'), default='psychedelic',
+                        help='geometric inner artwork (default: psychedelic)')
+    parser.add_argument('--inner-ring', choices=('none', 'seven-inch'), default='seven-inch',
+                        help='40 poses outside a 7-inch record for 45 RPM (default: seven-inch)')
     args = parser.parse_args()
     try:
         if args.size < 540 or args.size > 12000:
