@@ -28,6 +28,10 @@ function resetFrames() {
   $('make-frames').disabled = !($('image-file').files.length || $('zip-file').files.length);
   for (const id of ['download-zip', 'download-png', 'download-proof']) $(id).disabled = true;
   $('frames-preview').hidden = true;
+  const small=$('size-canvas').getContext('2d');
+  small.clearRect(0,0,320,320);
+  small.fillStyle='#555';small.textAlign='center';small.font='15px sans-serif';
+  small.fillText('コマを作ると表示されます',160,160);
   status('output-status', 'コマを作ると、ここで回転を確認できます。');
 }
 function imageFromBlob(blob) {
@@ -188,8 +192,14 @@ function drawArtwork(size, proof = false) {
   ctx.fillStyle = background === 'white' ? '#fff' : '#000';ctx.fillRect(0,0,size,size);
   const [sw,sh] = [state.frames[0].width,state.frames[0].height];
   const outerCount = countFor($('outer-rpm').value), innerCount = countFor($('inner-rpm').value);
-  const outer = outerGeometry(sw,sh,size,outerCount);
-  const inner = $('inner-ring').checked ? innerGeometry(sw,sh,size,innerCount,state.footFraction) : null;
+  const outerBase = outerGeometry(sw,sh,size,outerCount);
+  const outerScale = Number($('outer-size').value) / 100;
+  const outer = { ...outerBase, w:outerBase.w*outerScale, h:outerBase.h*outerScale,
+                  radius:outerBase.cap-outerBase.h*outerScale/2 };
+  const innerBase = $('inner-ring').checked ? innerGeometry(sw,sh,size,innerCount,state.footFraction) : null;
+  const innerScale = Number($('inner-size').value) / 100;
+  const inner = innerBase && { ...innerBase, w:innerBase.w*innerScale, h:innerBase.h*innerScale,
+                  radius:innerBase.edge+12*u+innerBase.h*innerScale*(state.footFraction-.5) };
   if ($('pattern').checked) {
     drawPattern(ctx,size,inner ? inner.edge-8*u : outer.cap-outer.h,inner ? innerCount : outerCount,$('theme').value);
     if (inner) {
@@ -222,7 +232,12 @@ function drawArtwork(size, proof = false) {
 }
 function updatePreview() {
   if (!state.frames) return;
-  try { state.previewDisc = drawArtwork(1200); status('output-status','30fpsの回転プレビューを表示しています。'); }
+  try {
+    state.previewDisc = drawArtwork(1200);
+    const small=$('size-canvas').getContext('2d');
+    small.clearRect(0,0,320,320);small.drawImage(state.previewDisc,0,0,320,320);
+    status('output-status','30fpsの回転プレビューを表示しています。');
+  }
   catch (error) { status('output-status',error.message,true); }
 }
 function previewLoop(now) {
@@ -322,10 +337,22 @@ $('make-frames').addEventListener('click',async()=>{
   finally { if(token===state.generation)$('make-frames').disabled=false; }
 });
 for(const id of ['outer-rpm','inner-rpm','theme','background','inner-ring','pattern'])$(id).addEventListener('change',updatePreview);
+for(const ring of ['outer','inner']) $(''+ring+'-size').addEventListener('input',()=>{
+  $(''+ring+'-size-value').textContent=$(''+ring+'-size').value+'%';
+  updatePreview();
+});
 $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1;});
 $('download-png').addEventListener('click',()=>exportPng(false));
 $('download-proof').addEventListener('click',()=>exportPng(true));
 $('download-zip').addEventListener('click',exportZip);
+const motionExample=$('prompt-motion').value;
+const zipPromptTemplate=$('zip-prompt').value.replace(motionExample,'{{motion}}');
+$('prompt-motion').addEventListener('input',()=>{
+  const motion=$('prompt-motion').value.trim();
+  $('zip-prompt').value=zipPromptTemplate.replace('{{motion}}',motion || '［ここに好きな動きを入力してください］');
+  $('copy-zip-prompt').disabled=!motion;
+  $('copy-prompt-status').textContent='';
+});
 $('copy-zip-prompt').addEventListener('click',async()=>{
   const prompt=$('zip-prompt'), message=$('copy-prompt-status');
   try {
@@ -337,5 +364,6 @@ $('copy-zip-prompt').addEventListener('click',async()=>{
     message.textContent='自動コピーできませんでした。選択中の文章を手動でコピーしてください。';
   }
 });
+resetFrames();
 requestAnimationFrame(previewLoop);
 window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,drawArtwork};
