@@ -37,3 +37,6 @@ details{border-top-color:#555}
   .preview-controls{grid-template-columns:1fr;gap:12px}
   .preview-controls .hint,.preview-controls .status{grid-column:auto}
 }
+.ticker{color:#111}
+input[type=file]{color:#bbb}
+input[type=file]::file-selector-button{background:#d9ed7c;color:#111;border:0;padding:10px 14px;margin-right:12px;font-weight:800;cursor:pointer}
