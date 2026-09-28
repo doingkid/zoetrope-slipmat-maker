@@ -98,3 +98,27 @@ input[type=range]:disabled,select:disabled{opacity:.42;cursor:not-allowed}
 .vendor-links strong{font-size:1.22rem}
 .vendor-links span{color:#d9ed7c;font-size:.84rem;font-weight:750}
 @media(max-width:650px){.order-resources{margin:34px 0 14px;padding:20px}.order-resources p{margin:12px 0 20px}.vendor-links{grid-template-columns:1fr}.vendor-links a{min-height:88px;padding:16px}}
+
+/* A restrained studio front page with a real output example. */
+.hero{background:#111}
+.topbar{height:66px;border-bottom-color:#393939}
+.topbar-note{color:#aaa;font-size:.76rem;letter-spacing:.02em;font-weight:600}
+.hero-grid{grid-template-columns:minmax(0,.85fr) minmax(350px,1.15fr);min-height:0;gap:clamp(26px,5vw,70px);padding:45px 0 55px}
+.hero-copy{padding:0}
+.hero h1{font-size:clamp(2.45rem,4vw,4.5rem);line-height:1.25;letter-spacing:-.06em;margin:0 0 22px}
+.hero h1 em{color:#fff}
+.hero-description{font-size:1rem;line-height:1.85;color:#ccc;font-weight:500;margin-bottom:28px}
+.hero-cta{min-width:180px;gap:28px}
+.hero-example{position:relative;margin:0;min-width:0;align-self:center}
+.hero-example img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.hero-example figcaption{margin-top:9px;color:#aaa;font-size:.78rem;text-align:right}
+.card{box-shadow:none}
+.step span{min-width:48px;height:auto;border-radius:0;background:none;color:#aaa;font-size:.83rem;font-weight:700}
+.order-resources .step span{font-size:1rem}
+.preview-card .turntable{border-top:1px solid #444;border-bottom:0}
+.mode-switch input:focus-visible+.mode-card,a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline-color:#d9ed7c}
+.footer-inner{display:flex;justify-content:space-between;align-items:center}
+footer strong{font-size:1.7rem}
+footer small{grid-column:auto;grid-row:auto}
+@media(max-width:900px){.hero-grid{grid-template-columns:minmax(0,.9fr) minmax(270px,1.1fr);min-height:0}.hero h1{font-size:clamp(2.35rem,4vw,3.4rem)}}
+@media(max-width:650px){.topbar{height:58px}.hero-grid{display:flex;flex-direction:column;gap:20px;padding:30px 0 34px}.hero-copy{padding:0}.hero h1{font-size:clamp(2.2rem,8.5vw,3.3rem);margin-bottom:15px}.hero-description{font-size:.9rem;margin-bottom:21px}.hero-example{position:relative;right:auto;top:auto;width:100%;height:auto;opacity:1;pointer-events:auto}.hero-example img{width:min(100%,460px);margin:auto}.hero-example figcaption{font-size:.73rem}.step span{min-width:37px}.footer-inner{display:block}footer strong{font-size:1.7rem}footer small{margin-top:17px}}
