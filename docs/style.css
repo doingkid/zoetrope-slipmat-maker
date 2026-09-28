@@ -56,9 +56,13 @@ input[type=file]::file-selector-button{background:#d9ed7c;color:#111;border:0;pa
 .size-fields .hint{margin:0}
 .pattern-controls{margin-top:22px;padding:20px 22px;border:1px solid #555;background:#222}
 .pattern-controls h3{margin:0 0 15px;font-size:1.15rem}
+.pattern-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:15px}
+.pattern-heading h3{margin:0}
+.pattern-heading .check{margin:0}
 .pattern-sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px}
 .pattern-sliders .size-control{margin:0}
 .pattern-controls .hint{margin:5px 0 0}
+input[type=range]:disabled,select:disabled{opacity:.42;cursor:not-allowed}
 @media(max-width:650px){.pattern-sliders{grid-template-columns:1fr}.pattern-controls{padding:16px}}
 .size-preview{text-align:center}
 .size-preview canvas{display:block;width:100%;height:auto;aspect-ratio:1;border:1px solid #666;border-radius:50%;background:#101010}
