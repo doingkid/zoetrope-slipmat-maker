@@ -222,7 +222,7 @@ function drawArtwork(size, proof = false) {
 }
 function updatePreview() {
   if (!state.frames) return;
-  try { state.previewDisc = drawArtwork(820); status('output-status','30fpsの回転プレビューを表示しています。'); }
+  try { state.previewDisc = drawArtwork(1200); status('output-status','30fpsの回転プレビューを表示しています。'); }
   catch (error) { status('output-status',error.message,true); }
 }
 function previewLoop(now) {
@@ -235,22 +235,22 @@ function previewLoop(now) {
       character.drawImage(state.frames[frame%SOURCE_COUNT],0,0,280,280);
     }
     const ctx=$('disc-canvas').getContext('2d');
-    ctx.clearRect(0,0,820,820);
+    ctx.clearRect(0,0,1200,1200);
     if (state.previewDisc) {
       const rpm=$('preview-rpm').value==='45'?45:100/3;
-      ctx.save();ctx.translate(410,410);ctx.rotate(2*Math.PI*(rpm/60)*(frame/30));
-      ctx.drawImage(state.previewDisc,-410,-410);ctx.restore();
+      ctx.save();ctx.translate(600,600);ctx.rotate(2*Math.PI*(rpm/60)*(frame/30));
+      ctx.drawImage(state.previewDisc,-600,-600);ctx.restore();
       if ($('record-overlay').checked) {
-        const edge=820*7/24;
-        ctx.beginPath();ctx.arc(410,410,edge,0,2*Math.PI);
+        const edge=1200*7/24;
+        ctx.beginPath();ctx.arc(600,600,edge,0,2*Math.PI);
         ctx.fillStyle='#80847e';ctx.fill();
-        circle(ctx,410,410,edge-7,'#bec5bf',3);
-        circle(ctx,410,410,edge*.37,'#2b473f',edge*.09);
-        circle(ctx,410,410,3,'#eee',2);
+        circle(ctx,600,600,edge-10,'#bec5bf',4);
+        circle(ctx,600,600,edge*.37,'#2b473f',edge*.09);
+        circle(ctx,600,600,4,'#eee',3);
       }
     } else {
-      ctx.fillStyle='#dce1d4';ctx.textAlign='center';ctx.font='24px sans-serif';
-      ctx.fillText('ここに回転プレビューが表示されます',410,410);
+      ctx.fillStyle='#dce1d4';ctx.textAlign='center';ctx.font='32px sans-serif';
+      ctx.fillText('ここに回転プレビューが表示されます',600,600);
     }
   }
   requestAnimationFrame(previewLoop);
