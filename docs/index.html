@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101817">
+  <meta name="theme-color" content="#111111">
   <title>Zoetrope Slipmat Maker</title>
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <header class="hero">
@@ -13,16 +13,16 @@
       <div class="topbar"><a class="wordmark" href="#top" aria-label="Spinmat Studio トップ">SPINMAT<span>™</span></a><span class="topbar-note">MAKE IT MOVE / 30 FPS</span></div>
       <div id="top" class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR RECORD. YOUR MOVEMENT.</p>
-          <h1>回せば、<br><em>動きだす。</em></h1>
-          <p class="hero-description">1枚のキャラ画像、または54枚のアニメを。<br>あなただけのゾートロープ・スリップマットに。</p>
+          <p class="eyebrow"><span class="eyebrow-dot"></span> ZOETROPE SLIPMAT MAKER</p>
+          <h1>キャラが踊る<br><em>スリップマット。</em></h1>
+          <p class="hero-description">キャラ画像1枚、または54枚のアニメから。<br>撮って楽しめるスリップマットを作ろう。</p>
           <a class="hero-cta" href="#source-title">さっそく作る <span aria-hidden="true">↘</span></a>
         </div>
         <div class="hero-art" aria-hidden="true"><div class="hero-disc"><div class="hero-disc-inner"></div></div><span class="hero-art-label">33⅓ / 45 RPM<br>12 INCH SLIPMAT</span></div>
       </div>
     </div>
   </header>
-  <div class="ticker" aria-hidden="true"><div class="shell">UPLOAD YOUR CHARACTER <span>✳</span> CHOOSE YOUR SOUND <span>✳</span> WATCH IT SPIN <span>✳</span> PRINT YOUR MAT <span>✳</span></div></div>
+  <div class="ticker" aria-hidden="true"><div class="shell">UPLOAD YOUR CHARACTER <span>✳</span> CHOOSE YOUR SETTINGS <span>✳</span> WATCH IT SPIN <span>✳</span> PRINT YOUR MAT <span>✳</span></div></div>
   <main class="shell">
     <section class="card" aria-labelledby="source-title">
       <div class="step"><span>01</span><h2 id="source-title">キャラを選ぶ</h2></div>
@@ -56,11 +56,11 @@
       </div>
       <details><summary>追加設定</summary><label class="check"><input id="inner-ring" type="checkbox" checked>7インチ盤のすぐ外に小さなキャラを置く</label><label class="check"><input id="pattern" type="checkbox" checked>中央とキャラの間に模様を入れる</label></details>
     </section>
-    <section class="card" aria-labelledby="preview-title">
+    <section class="card preview-card" aria-labelledby="preview-title">
       <div class="step"><span>03</span><h2 id="preview-title">回転を見て、画像を保存</h2></div>
       <p class="section-intro">撮影時の見え方をチェック。仕上がったらPNGを保存。</p>
       <div class="preview-layout">
-        <div class="turntable"><canvas id="disc-canvas" width="820" height="820" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
+        <div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
         <div class="preview-controls">
           <div class="field"><label for="preview-rpm">プレビューの回転数</label><select id="preview-rpm"><option value="33.33">33⅓回転</option><option value="45">45回転</option></select></div>
           <label class="check"><input id="record-overlay" type="checkbox">7インチ盤を重ねて見る</label>
@@ -74,6 +74,6 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT<span>™</span></strong><p>YOUR CHARACTER. YOUR RECORD. YOUR LOOP.</p><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
