@@ -32,6 +32,13 @@ The default 3600 × 3600 PNG contains:
 
 The numbered proof marks the 7-inch edge. Only the clean PNG is artwork. A real 7-inch record covers the printed pattern inside its rim. Use `--inner-ring none` or `--inner-pattern none` to disable either default. Run `--help` for other options.
 
-The outer 54-frame timing depends on true 33⅓ RPM and constant 30 fps; the inner 40-frame timing depends on 45 RPM and constant 30 fps. The other row will not animate at its intended speed. Test a print and recording with short exposure, and check the actual record diameter and spindle hole. Obtain the print shop's hole, bleed, and color requirements before production.
+Choose each row's recording speed independently. At fixed 30 fps, `33.33` selects 54 positions (physical 33⅓ RPM) and `45` selects 40 positions. The ZIP still contains 54 frames; a 40-position row evenly samples the 54-pose cycle. The default remains outer 33⅓ RPM and inner 45 RPM.
 
-For use as a ChatGPT/Codex Agent Skill, load the repository folder containing `SKILL.md`; that file invokes the included script.
+```bash
+python3 scripts/compose_slipmat.py frames.zip swapped.png --outer-rpm 45 --inner-rpm 33.33
+python3 scripts/compose_slipmat.py frames.zip neon.png --theme neon
+```
+
+`--theme` offers `reggae` (default), `neon`, `ocean`, `sunset`, and `monochrome`. The theme changes the center geometry and the colored bands between rows; `--inner-pattern none` removes both. When both rows select the same speed, they animate together; when their speeds differ, only the matching row animates as intended at a given platter speed. The inner 33⅓ RPM setting fits 54 smaller poses outside the 7-inch rim.
+
+The timing assumes true 33⅓ or 45 RPM and constant 30 fps. Test a print and recording with short exposure, and check the actual record diameter and spindle hole. Obtain the print shop's hole, bleed, and color requirements before production.
