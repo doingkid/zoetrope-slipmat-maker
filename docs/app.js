@@ -137,6 +137,14 @@ function innerGeometry(sw, sh, size, count, footFraction) {
   const w = Math.max(1, Math.round(sw * scale)), h = Math.max(1, Math.round(sh * scale));
   return { w, h, radius: edge + 12 * unit + h * footFraction - h / 2, edge };
 }
+function centerGeometry(sw, sh, size, count) {
+  const unit = size / 3600;
+  const cap = size * 7 / 24 - 36 * unit;
+  const sectorWidth = 2 * cap * Math.tan(Math.PI / count) * .82;
+  const scale = Math.min(190 * unit / sh, sectorWidth / sw);
+  const w = Math.max(1, Math.round(sw * scale)), h = Math.max(1, Math.round(sh * scale));
+  return { w, h, radius: cap - h / 2, cap };
+}
 function circle(ctx, x, y, r, color, width) {
   ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI);
   ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
@@ -146,27 +154,29 @@ function fillPoly(ctx, points, color) {
   for (const point of points.slice(1)) ctx.lineTo(...point);
   ctx.closePath(); ctx.fillStyle = color; ctx.fill();
 }
-function drawPattern(ctx, size, limit, count, theme) {
+function drawPattern(ctx, size, limit, count, theme, density = 1, stroke = 1, motif = 1) {
   const u = size / 3600, mid = size / 2, outer = limit - 45 * u;
   if (outer < 650 * u) return;
   const [green, red, gold] = THEMES[theme];
+  const widthFor = width => Math.max(2, width * u * stroke);
   const point = (f, a) => [mid + outer * f * Math.sin(rad(a)), mid - outer * f * Math.cos(rad(a))];
   for (const [f, width, color] of [[1,13,green],[.955,6,red],[.805,12,gold],[.785,6,green],[.625,14,red],[.60,5,gold],[.44,13,green],[.42,5,red],[.255,11,gold],[.14,9,red]])
-    circle(ctx, mid, mid, outer * f, color, Math.max(2, width * u));
-  for (let i = 0; i < count; i++) {
-    const a = i * 360 / count;
-    const poly = (pairs, color) => fillPoly(ctx, pairs.map(([f, delta]) => point(f, a + delta)), color);
+    circle(ctx, mid, mid, outer * f, color, widthFor(width));
+  const repeats = Math.max(1, Math.round(count * density));
+  for (let i = 0; i < repeats; i++) {
+    const a = i * 360 / repeats;
+    const poly = (pairs, color) => fillPoly(ctx, pairs.map(([f, delta]) => point(f, a + delta * motif)), color);
     poly([[.925,-2.35],[.99,0],[.925,2.35],[.955,0]], green);
     poly([[.83,0],[.865,2],[.83,4],[.795,2]], red);
     poly([[.715,-2.1],[.76,0],[.715,2.1],[.67,0]], green);
     poly([[.545,0],[.585,2],[.545,4],[.505,2]], gold);
     for (const [f,r,color] of [[.355,12,green],[.185,9,gold]]) {
-      const [x,y] = point(f,a); ctx.beginPath(); ctx.arc(x,y,Math.max(2,r*u),0,2*Math.PI); ctx.fillStyle=color; ctx.fill();
+      const [x,y] = point(f,a); ctx.beginPath(); ctx.arc(x,y,Math.max(2,r*u*motif),0,2*Math.PI); ctx.fillStyle=color; ctx.fill();
     }
     if (theme !== 'reggae') {
       poly([[.34,-1.6],[.39,0],[.34,1.6],[.29,0]], red);
-      ctx.beginPath(); ctx.moveTo(...point(.12,a-1.2));ctx.lineTo(...point(.22,a+1.2));
-      ctx.strokeStyle=green;ctx.lineWidth=Math.max(2,3*u);ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(...point(.12,a-1.2*motif));ctx.lineTo(...point(.22,a+1.2*motif));
+      ctx.strokeStyle=green;ctx.lineWidth=widthFor(3);ctx.stroke();
     }
   }
 }
@@ -192,6 +202,7 @@ function drawArtwork(size, proof = false) {
   ctx.fillStyle = background === 'white' ? '#fff' : '#000';ctx.fillRect(0,0,size,size);
   const [sw,sh] = [state.frames[0].width,state.frames[0].height];
   const outerCount = countFor($('outer-rpm').value), innerCount = countFor($('inner-rpm').value);
+  const centerCount = countFor($('center-rpm').value);
   const outerBase = outerGeometry(sw,sh,size,outerCount);
   const outerScale = Number($('outer-size').value) / 100;
   const outer = { ...outerBase, w:outerBase.w*outerScale, h:outerBase.h*outerScale,
@@ -200,20 +211,37 @@ function drawArtwork(size, proof = false) {
   const innerScale = Number($('inner-size').value) / 100;
   const inner = innerBase && { ...innerBase, w:innerBase.w*innerScale, h:innerBase.h*innerScale,
                   radius:innerBase.edge+12*u+innerBase.h*innerScale*(state.footFraction-.5) };
+  const centerBase = $('center-ring').checked ? centerGeometry(sw,sh,size,centerCount) : null;
+  const centerScale = Number($('center-size').value) / 100;
+  const center = centerBase && { ...centerBase, w:centerBase.w*centerScale, h:centerBase.h*centerScale,
+                   radius:centerBase.cap-centerBase.h*centerScale/2 };
   if ($('pattern').checked) {
-    drawPattern(ctx,size,inner ? inner.edge-8*u : outer.cap-outer.h,inner ? innerCount : outerCount,$('theme').value);
+    const density=Number($('pattern-density').value)/100, stroke=Number($('pattern-width').value)/100;
+    const motif=Number($('pattern-motif').value)/100;
+    drawPattern(ctx,size,center ? center.radius-center.h/2-12*u : inner ? inner.edge-8*u : outer.cap-outer.h,
+                center ? centerCount : inner ? innerCount : outerCount,$('theme').value,density,stroke,motif);
+    if (center) {
+      const start=center.radius+center.h/2+12*u;
+      const end=inner ? inner.edge-20*u : outer.cap-outer.h-15*u;
+      if (end>start) {
+        const [green,red,gold]=THEMES[$('theme').value],span=end-start;
+        for (const [f,w,color] of [[.25,9,green],[.55,7,red],[.82,10,gold]])
+          circle(ctx,mid,mid,start+f*span,color,Math.max(2,w*u*stroke));
+      }
+    }
     if (inner) {
       const start=inner.radius+inner.h/2+15*u, end=outer.cap-outer.h-15*u;
       if (end > start) {
         const [green,red,gold]=THEMES[$('theme').value],span=end-start;
         for (const [f,w,color] of [[.16,11,green],[.36,8,gold],[.56,13,red],[.78,7,gold]])
-          circle(ctx,mid,mid,start+f*span,color,Math.max(2,w*u));
+          circle(ctx,mid,mid,start+f*span,color,Math.max(2,w*u*stroke));
       }
     }
   }
   const positions=[];
   drawRing(ctx,state.frames,size,outer,outerCount,-1,proof ? positions : null);
   if (inner) drawRing(ctx,state.frames,size,inner,innerCount,-1,null);
+  if (center) drawRing(ctx,state.frames,size,center,centerCount,-1,null);
   ctx.restore();
   if (background==='white') circle(ctx,mid,mid,mid-.5,'#000',Math.max(2,size/900));
   ctx.beginPath();ctx.arc(mid,mid,Math.max(1,size/DIAMETER_MM/2),0,2*Math.PI);
@@ -337,10 +365,15 @@ $('make-frames').addEventListener('click',async()=>{
   } catch(error){ if(token===state.generation)status('source-status',`読み込めませんでした: ${error.message}`,true); }
   finally { if(token===state.generation)$('make-frames').disabled=false; }
 });
-for(const id of ['outer-rpm','inner-rpm','theme','background','inner-ring','pattern'])$(id).addEventListener('change',updatePreview);
-for(const ring of ['outer','inner']) $(''+ring+'-size').addEventListener('input',()=>{
+for(const id of ['outer-rpm','inner-rpm','center-rpm','theme','background','inner-ring','center-ring','pattern'])$(id).addEventListener('change',updatePreview);
+let pendingPreview=false;
+function schedulePreview(){if(pendingPreview)return;pendingPreview=true;requestAnimationFrame(()=>{pendingPreview=false;updatePreview();});}
+for(const ring of ['outer','inner','center']) $(''+ring+'-size').addEventListener('input',()=>{
   $(''+ring+'-size-value').textContent=$(''+ring+'-size').value+'%';
-  updatePreview();
+  schedulePreview();
+});
+for(const id of ['pattern-density','pattern-width','pattern-motif']) $(id).addEventListener('input',()=>{
+  $(id+'-value').textContent=$(id).value+'%';schedulePreview();
 });
 $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1;});
 $('download-png').addEventListener('click',()=>exportPng(false));
@@ -367,4 +400,4 @@ $('copy-zip-prompt').addEventListener('click',async()=>{
 });
 resetFrames();
 requestAnimationFrame(previewLoop);
-window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,drawArtwork};
+window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,centerGeometry,drawArtwork};
