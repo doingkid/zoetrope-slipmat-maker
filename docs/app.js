@@ -25,14 +25,13 @@ function resetFrames() {
   state.generation++;
   state.frames = null;
   state.previewDisc = null;
-  $('make-frames').disabled = !($('image-file').files.length || $('zip-file').files.length);
-  for (const id of ['download-zip', 'download-png', 'download-proof']) $(id).disabled = true;
+  for (const id of ['download-png', 'download-proof']) $(id).disabled = true;
   $('frames-preview').hidden = true;
   const small=$('size-canvas').getContext('2d');
   small.clearRect(0,0,320,320);
   small.fillStyle='#555';small.textAlign='center';small.font='15px sans-serif';
-  small.fillText('コマを作ると表示されます',160,160);
-  status('output-status', 'コマを作ると、ここで回転を確認できます。');
+  small.fillText('素材を選ぶと表示されます',160,160);
+  status('output-status', '素材を選ぶと、ここで回転を確認できます。');
 }
 function imageFromBlob(blob) {
   return createImageBitmap(blob);
@@ -207,11 +206,11 @@ function drawArtwork(size, proof = false) {
   const outerScale = Number($('outer-size').value) / 100;
   const outer = { ...outerBase, w:outerBase.w*outerScale, h:outerBase.h*outerScale,
                   radius:outerBase.cap-outerBase.h*outerScale/2 };
-  const innerBase = $('inner-ring').checked ? innerGeometry(sw,sh,size,innerCount,state.footFraction) : null;
+  const innerBase = $('inner-rpm').value !== 'none' ? innerGeometry(sw,sh,size,innerCount,state.footFraction) : null;
   const innerScale = Number($('inner-size').value) / 100;
   const inner = innerBase && { ...innerBase, w:innerBase.w*innerScale, h:innerBase.h*innerScale,
                   radius:innerBase.edge+12*u+innerBase.h*innerScale*(state.footFraction-.5) };
-  const centerBase = $('center-ring').checked ? centerGeometry(sw,sh,size,centerCount) : null;
+  const centerBase = $('center-rpm').value !== 'none' ? centerGeometry(sw,sh,size,centerCount) : null;
   const centerScale = Number($('center-size').value) / 100;
   const center = centerBase && { ...centerBase, w:centerBase.w*centerScale, h:centerBase.h*centerScale,
                    radius:centerBase.cap-centerBase.h*centerScale/2 };
@@ -239,7 +238,7 @@ function drawArtwork(size, proof = false) {
     }
   }
   const positions=[];
-  drawRing(ctx,state.frames,size,outer,outerCount,-1,proof ? positions : null);
+  if ($('outer-rpm').value !== 'none') drawRing(ctx,state.frames,size,outer,outerCount,-1,proof ? positions : null);
   if (inner) drawRing(ctx,state.frames,size,inner,innerCount,-1,null);
   if (center) drawRing(ctx,state.frames,size,center,centerCount,-1,null);
   ctx.restore();
@@ -250,7 +249,7 @@ function drawArtwork(size, proof = false) {
     ctx.fillStyle=background==='white'?'#000':'#ffeb59';ctx.font=`bold ${Math.max(12,size/105)}px sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';
     const labelR=outer.cap-outer.h-Math.max(25,size/80);
-    for (let i=0;i<outerCount;i++) {
+    for (let i=0;i<($('outer-rpm').value === 'none' ? 0 : outerCount);i++) {
       const bearing=-i*2*Math.PI/outerCount;
       ctx.fillText(String(i+1),mid+labelR*Math.sin(bearing),mid-labelR*Math.cos(bearing));
     }
@@ -320,52 +319,34 @@ async function exportPng(proof) {
   } catch(error) { status('output-status',`書き出せませんでした: ${error.message}`,true); }
   finally { state.exporting=false;button.disabled=false; }
 }
-async function exportZip() {
-  if (state.exporting || !state.frames) return;
-  state.exporting=true;$('download-zip').disabled=true;
-  try {
-    const files={};
-    for (let i=0;i<SOURCE_COUNT;i++) {
-      const blob=await blobFromCanvas(state.frames[i]);
-      files[`${String(i+1).padStart(3,'0')}.png`]=new Uint8Array(await blob.arrayBuffer());
-      if (i%9===8) { status('source-status',`ZIPを作成中… ${i+1}/54枚`);await new Promise(resolve=>setTimeout(resolve,0)); }
-    }
-    saveBlob(ZipFiles.write(files),'dance_54_frames.zip');
-    status('source-status','54枚入りZIPを保存しました。');
-  } catch(error) { status('source-status',`ZIPを保存できませんでした: ${error.message}`,true); }
-  finally { state.exporting=false;$('download-zip').disabled=false; }
-}
-
-for (const input of document.querySelectorAll('input[name="source-mode"]')) input.addEventListener('change',()=>{
-  const isImage=document.querySelector('input[name="source-mode"]:checked').value==='image';
-  $('image-input-area').hidden=!isImage;$('zip-input-area').hidden=isImage;
-  resetFrames();status('source-status',isImage?'画像を選んでください。':'ZIPを選んでください。');
-  $('make-frames').disabled=!(isImage?$('image-file').files.length:$('zip-file').files.length);
-});
-for (const id of ['image-file','zip-file','motion']) $(id).addEventListener('change',()=>{
+async function prepareFrames() {
   resetFrames();
   const isImage=document.querySelector('input[name="source-mode"]:checked').value==='image';
   const file=$(isImage?'image-file':'zip-file').files[0];
-  status('source-status',file?`${file.name} を選択しました。`: '素材を選んでください。');
-  $('make-frames').disabled=!file;
-});
-$('make-frames').addEventListener('click',async()=>{
-  const isImage=document.querySelector('input[name="source-mode"]:checked').value==='image';
-  const file=$(isImage?'image-file':'zip-file').files[0];if(!file)return;
-  const token=++state.generation;$('make-frames').disabled=true;
+  if(!file){status('source-status',isImage?'画像を選んでください。':'ZIPを選んでください。');return;}
+  const token=state.generation;
   status('source-status','54コマを準備しています…');
   try {
     const result=isImage?await framesFromImage(file,$('motion').value,token):await framesFromZip(file,token);
     if(!result || token!==state.generation)return;
     state.frames=result.frames;state.footFraction=result.footFraction;
     $('frames-preview').hidden=false;
-    for(const id of ['download-zip','download-png','download-proof'])$(id).disabled=false;
+    for(const id of ['download-png','download-proof'])$(id).disabled=false;
     status('source-status','54コマの準備ができました。');
     updatePreview();
   } catch(error){ if(token===state.generation)status('source-status',`読み込めませんでした: ${error.message}`,true); }
-  finally { if(token===state.generation)$('make-frames').disabled=false; }
+}
+for (const input of document.querySelectorAll('input[name="source-mode"]')) input.addEventListener('change',()=>{
+  const isImage=input.value==='image';
+  $('image-input-area').hidden=!isImage;$('zip-input-area').hidden=isImage;
+  prepareFrames();
 });
-for(const id of ['outer-rpm','inner-rpm','center-rpm','theme','background','inner-ring','center-ring','pattern'])$(id).addEventListener('change',updatePreview);
+for (const id of ['image-file','zip-file','motion']) $(id).addEventListener('change',prepareFrames);
+function syncControls() {
+  for (const ring of ['outer','inner','center']) $(''+ring+'-size').disabled=$(''+ring+'-rpm').value==='none';
+  for (const id of ['theme','pattern-density','pattern-width','pattern-motif']) $(id).disabled=!$('pattern').checked;
+}
+for(const id of ['outer-rpm','inner-rpm','center-rpm','theme','background','pattern'])$(id).addEventListener('change',()=>{syncControls();updatePreview();});
 let pendingPreview=false;
 function schedulePreview(){if(pendingPreview)return;pendingPreview=true;requestAnimationFrame(()=>{pendingPreview=false;updatePreview();});}
 for(const ring of ['outer','inner','center']) $(''+ring+'-size').addEventListener('input',()=>{
@@ -378,7 +359,6 @@ for(const id of ['pattern-density','pattern-width','pattern-motif']) $(id).addEv
 $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1;});
 $('download-png').addEventListener('click',()=>exportPng(false));
 $('download-proof').addEventListener('click',()=>exportPng(true));
-$('download-zip').addEventListener('click',exportZip);
 const motionExample=$('prompt-motion').value;
 const zipPromptTemplate=$('zip-prompt').value.replace(motionExample,'{{motion}}');
 $('prompt-motion').addEventListener('input',()=>{
@@ -398,6 +378,6 @@ $('copy-zip-prompt').addEventListener('click',async()=>{
     message.textContent='自動コピーできませんでした。選択中の文章を手動でコピーしてください。';
   }
 });
-resetFrames();
+syncControls();resetFrames();
 requestAnimationFrame(previewLoop);
 window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,centerGeometry,drawArtwork};
