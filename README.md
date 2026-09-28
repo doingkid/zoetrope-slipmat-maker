@@ -2,6 +2,12 @@
 
 A deterministic compositor for a black 12-inch zoetrope slipmat. Supply 54 transparent animation frames. By default it places 54 poses in an outer ring for 33⅓ RPM and 40 poses in an inner ring for 45 RPM, both filmed at fixed 30 fps.
 
+## Browser app
+
+The mobile-friendly app in [`docs/`](docs/) runs entirely in the browser. It can make 54 frames from one image using whole-character sway/bounce motion, or read a ZIP of 54 transparent PNGs for a real pose-by-pose animation. Choose each ring's RPM, pattern theme, and background, view a simulated 30 fps rotating disc with an optional 7-inch record overlay, and download the 3600 × 3600 PNG, numbered proof, or frame ZIP. The initial settings match the Python script.
+
+To host it for free, enable GitHub Pages in repository Settings → Pages, choose **Deploy from a branch**, `main`, `/docs`. No server, account, image API, or build step is needed for visitors. For local development, run `python3 -m http.server 8000 --directory docs` and visit `http://localhost:8000`. Newer Safari/Chrome is needed to extract compressed ZIPs. One-image motion transforms the entire picture; it does not separately animate its arms or legs. The preview samples an ideal 30 fps camera and cannot reproduce exposure blur, lighting, or actual platter-speed error. Browser image composition is a JavaScript port of the Python renderer, so check a final print with the desired source before production.
+
 ## Input
 
 Create a ZIP containing `001.png` through `054.png`. Every frame needs the same transparent canvas size and consistent character placement. Draw the head toward the top and feet toward the bottom. Frame 54 should transition smoothly to frame 1.
