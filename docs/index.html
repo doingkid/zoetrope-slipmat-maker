@@ -86,7 +86,7 @@
         <div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
         <div class="preview-controls">
           <div class="field"><label for="preview-rpm">プレビューの回転数</label><select id="preview-rpm"><option value="33.33">33⅓回転</option><option value="45">45回転</option></select></div>
-          <label class="check"><input id="record-overlay" type="checkbox">7インチ盤を重ねて見る</label>
+          <div class="field"><label for="record-overlay">レコードを重ねて見る</label><select id="record-overlay"><option value="none">重ねない</option><option value="7">7インチ盤を重ねて見る</option><option value="10">10インチ盤を重ねて見る</option></select></div>
           <p class="hint">30fpsのカメラで撮影した場合の理想的な見え方を模擬します。実際の撮影では照明やシャッター速度でも見え方が変わります。</p>
           <p id="output-status" class="status" role="status">コマを作ると、ここで回転を確認できます。</p>
           <button id="download-png" type="button" disabled>完成PNGを保存</button>
@@ -97,6 +97,6 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT<span>™</span></strong><p>YOUR CHARACTER. YOUR RECORD. YOUR LOOP.</p><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
