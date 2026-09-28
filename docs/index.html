@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111111">
   <title>Zoetrope Slipmat Maker</title>
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <header class="hero">
@@ -43,6 +43,8 @@
         <div class="prompt-guide">
           <h3>ChatGPTで54枚のZIPを作るなら</h3>
           <p>キャラの画像をChatGPTに添付して、下の文章を送ってください。できたZIPを保存し、この画面で選びます。</p>
+          <label class="prompt-motion-label" for="prompt-motion">動きの指定 <span>下は一例です。好きな動きに書き換えられます。</span></label>
+          <input id="prompt-motion" type="text" value="ゆったり左右にステップを踏み、左右の足を交互に出す、1周期のループにしてください。">
           <textarea id="zip-prompt" readonly spellcheck="false" aria-label="ChatGPTに送るプロンプト">添付したキャラ画像をもとに、ゾートロープ用のアニメーションを54コマ作ってください。ゆったり左右にステップを踏み、左右の足を交互に出す、1周期のループにしてください。
 
 元のキャラの絵柄・顔・服・色を保ち、別のキャラに描き直さないでください。各コマで姿勢が少しずつ変わり、054.pngから001.pngへも自然につながるようにしてください。単に静止画全体を左右に動かすだけにはしないでください。
@@ -66,6 +68,15 @@
         <div class="field"><label for="theme">模様</label><select id="theme"><option value="reggae">レゲエ（緑・赤・黄）</option><option value="neon">ネオン</option><option value="ocean">オーシャン</option><option value="sunset">サンセット</option><option value="monochrome">モノクロ</option></select></div>
         <div class="field"><label for="background">背景</label><select id="background"><option value="black">黒</option><option value="white">白（インク節約）</option></select></div>
       </div>
+      <div class="size-controls">
+        <div class="size-fields">
+          <h3>キャラの大きさ</h3>
+          <div class="size-control"><label for="outer-size">外側のキャラ <output id="outer-size-value" for="outer-size">100%</output></label><input id="outer-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <div class="size-control"><label for="inner-size">内側のキャラ <output id="inner-size-value" for="inner-size">100%</output></label><input id="inner-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <p class="hint">コマを作った後、見本を見ながら調整できます。大きくしすぎると隣のキャラに重なるため、表示を確認してください。</p>
+        </div>
+        <div class="size-preview"><canvas id="size-canvas" width="320" height="320" aria-label="大きさ調整用のスリップマット見本"></canvas><span>サイズ調整用の見本</span></div>
+      </div>
       <details><summary>追加設定</summary><label class="check"><input id="inner-ring" type="checkbox" checked>7インチ盤のすぐ外に小さなキャラを置く</label><label class="check"><input id="pattern" type="checkbox" checked>中央とキャラの間に模様を入れる</label></details>
     </section>
     <section class="card preview-card" aria-labelledby="preview-title">
@@ -86,6 +97,6 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT<span>™</span></strong><p>YOUR CHARACTER. YOUR RECORD. YOUR LOOP.</p><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
