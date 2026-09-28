@@ -78,3 +78,13 @@ input[type=file]::file-selector-button{background:#d9ed7c;color:#111;border:0;pa
 .mode-switch input:checked+.mode-card--simple .mode-badge{background:#111;color:#fff}
 .mode-switch input:focus-visible+.mode-card{outline:3px solid #e62f4a;outline-offset:3px}
 @media(max-width:650px){.mode-switch{grid-template-columns:1fr;gap:10px}.mode-switch .mode-card{padding:14px}.mode-switch .mode-card strong{font-size:1.04rem;margin:7px 0 3px}}
+.order-resources{margin:50px 0 22px;padding:clamp(22px,3.6vw,45px);border:1px solid #555;background:#191919}
+.order-resources .step span{font-size:1.35rem}
+.order-resources p{max-width:850px;margin:15px 0 23px 64px;color:#bbb;font-size:.9rem;line-height:1.8}
+.order-resources p strong{color:#f2f2ed}
+.vendor-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.vendor-links a{display:flex;flex-direction:column;justify-content:center;gap:9px;min-height:112px;padding:21px 23px;border:1px solid #777;color:#fff;text-decoration:none;transition:background .15s,border-color .15s}
+.vendor-links a:hover,.vendor-links a:focus-visible{background:#303626;border-color:#d9ed7c}
+.vendor-links strong{font-size:1.22rem}
+.vendor-links span{color:#d9ed7c;font-size:.84rem;font-weight:750}
+@media(max-width:650px){.order-resources{margin:34px 0 14px;padding:20px}.order-resources p{margin:12px 0 20px}.vendor-links{grid-template-columns:1fr}.vendor-links a{min-height:88px;padding:16px}}
