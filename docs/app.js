@@ -255,8 +255,9 @@ function previewLoop(now) {
       const rpm=$('preview-rpm').value==='45'?45:100/3;
       ctx.save();ctx.translate(600,600);ctx.rotate(2*Math.PI*(rpm/60)*(frame/30));
       ctx.drawImage(state.previewDisc,-600,-600);ctx.restore();
-      if ($('record-overlay').checked) {
-        const edge=1200*7/24;
+      const recordInches=Number($('record-overlay').value);
+      if (recordInches===7 || recordInches===10) {
+        const edge=1200*recordInches/24;
         ctx.beginPath();ctx.arc(600,600,edge,0,2*Math.PI);
         ctx.fillStyle='#80847e';ctx.fill();
         circle(ctx,600,600,edge-10,'#bec5bf',4);
