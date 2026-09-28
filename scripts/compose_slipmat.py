@@ -13,6 +13,14 @@ from PIL import Image, ImageDraw, ImageFont, UnidentifiedImageError
 
 N = 54
 INNER_N = 40
+RPM_COUNTS = {'33.33': N, '45': INNER_N}
+THEMES = {
+    'reggae': ((42, 181, 83, 235), (221, 55, 54, 235), (247, 202, 67, 235)),
+    'neon': ((0, 235, 220, 235), (245, 43, 183, 235), (247, 237, 55, 235)),
+    'ocean': ((45, 211, 205, 235), (31, 107, 215, 235), (181, 242, 246, 235)),
+    'sunset': ((245, 105, 47, 235), (185, 55, 144, 235), (255, 207, 85, 235)),
+    'monochrome': ((225, 225, 225, 235), (128, 128, 128, 235), (255, 255, 255, 235)),
+}
 DIAMETER_MM = 304.8
 MAX_SOURCE_BYTES = 20_000_000
 MAX_PIXELS = 16_000_000
@@ -63,7 +71,7 @@ def read_frames(path):
         return frames
 
 
-def dimensions(source_size, output_size, outer_margin_mm, max_height_mm):
+def dimensions(source_size, output_size, outer_margin_mm, max_height_mm, count=N):
     sw, sh = source_size
     outer = output_size / 2
     margin = outer_margin_mm / DIAMETER_MM * output_size
@@ -73,7 +81,7 @@ def dimensions(source_size, output_size, outer_margin_mm, max_height_mm):
         raise ValueError('Margins leave insufficient room for the frames')
     # Fit the entire canvas into 90% of its angular sector at its inner corners.
     lo, hi = 0.0, min(max_h / sh, (cap - 1) / sh)
-    sector = (2 * math.pi / N) * 0.90
+    sector = (2 * math.pi / count) * 0.90
     for _ in range(80):
         scale = (lo + hi) / 2
         width, height = sw * scale, sh * scale
@@ -87,7 +95,7 @@ def dimensions(source_size, output_size, outer_margin_mm, max_height_mm):
     return width, height, radius, cap
 
 
-def draw_inner_pattern(artwork, inner_limit, count):
+def draw_inner_pattern(artwork, inner_limit, count, theme='reggae'):
     """Draw a geometric pattern with the active ring's frame symmetry."""
     size = artwork.width
     center = size / 2
@@ -97,7 +105,7 @@ def draw_inner_pattern(artwork, inner_limit, count):
         raise ValueError('Frames leave too little room for the inner pattern')
     layer = Image.new('RGBA', artwork.size)
     draw = ImageDraw.Draw(layer)
-    green, red, gold = (42, 181, 83, 235), (221, 55, 54, 235), (247, 202, 67, 235)
+    green, red, gold = THEMES[theme]
 
     def point(radius, angle):
         angle = math.radians(angle - 90)
@@ -132,17 +140,23 @@ def draw_inner_pattern(artwork, inner_limit, count):
             x, y = point(outer*fraction, angle)
             r = max(2, radius*unit)
             draw.ellipse((x-r, y-r, x+r, y+r), fill=color)
+        if theme != 'reggae':
+            # A second geometric cadence gives the alternate themes distinct texture.
+            draw.polygon([point(outer*f, angle+a) for f, a in
+                          ((.34, -1.6), (.39, 0), (.34, 1.6), (.29, 0))], fill=red)
+            draw.line([point(outer*.12, angle-1.2), point(outer*.22, angle+1.2)],
+                      fill=green, width=max(2, round(3*unit)))
     artwork.alpha_composite(layer)
 
 
-def inner_ring_dimensions(frames, size):
+def inner_ring_dimensions(frames, size, count=INNER_N):
     """Fit a second row with visible feet just outside a 7-inch record."""
     sw, sh = frames[0].size
     edge = size * 7 / 24  # 7-inch diameter compared with a 12-inch disc.
     unit = size / 3600
     bottom = max(frame.getchannel('A').getbbox()[3] for frame in frames)
     # Keep each full canvas inside its angular sector at the inner edge.
-    sector_width = 2 * edge * math.tan(math.pi / INNER_N) * .82
+    sector_width = 2 * edge * math.tan(math.pi / count) * .82
     scale = min(260*unit/sh, sector_width/sw)
     width, height = max(1, round(sw*scale)), max(1, round(sh*scale))
     # 12 px clearance from the 7-inch edge to the deepest visible foot.
@@ -152,16 +166,18 @@ def inner_ring_dimensions(frames, size):
 
 def compose(frames, size, margin, max_height, rotation, proof_path=None,
             inner_pattern='psychedelic', inner_ring='seven-inch', center_mark_mm=1.0,
-            background='black'):
-    width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height)
+            background='black', outer_rpm='33.33', inner_rpm='45', theme='reggae'):
+    outer_count, inner_count = RPM_COUNTS[outer_rpm], RPM_COUNTS[inner_rpm]
+    width, height, radius, cap = dimensions(frames[0].size, size, margin, max_height,
+                                             outer_count)
     center = size / 2
     artwork = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     disc_color = (255, 255, 255, 255) if background == 'white' else (0, 0, 0, 255)
     ImageDraw.Draw(artwork).ellipse((0, 0, size - 1, size - 1), fill=disc_color)
-    inner_dims = inner_ring_dimensions(frames, size) if inner_ring == 'seven-inch' else None
+    inner_dims = inner_ring_dimensions(frames, size, inner_count) if inner_ring == 'seven-inch' else None
     if inner_pattern == 'psychedelic':
         draw_inner_pattern(artwork, inner_dims[3] - 8*size/3600 if inner_dims
-                           else cap - height, INNER_N if inner_dims else N)
+                           else cap - height, inner_count if inner_dims else outer_count, theme)
     if inner_dims and inner_pattern == 'psychedelic':
         # Circular bands read cleanly at both platter speeds. They occupy the
         # gap between the two rows without crossing either character canvas.
@@ -171,18 +187,20 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
         if gap_end <= gap_start:
             raise ValueError('The source frames leave no gap between the two rows')
         bands = ImageDraw.Draw(artwork)
-        palette = ((42, 181, 83, 255), (247, 202, 67, 255), (221, 55, 54, 255))
+        primary, secondary, accent = THEMES[theme]
+        palette = (primary, accent, secondary)
         span = gap_end-gap_start
         for fraction, thickness, color in ((.16, 11, palette[0]), (.36, 8, palette[1]),
                                            (.56, 13, palette[2]), (.78, 7, palette[1])):
             r = gap_start + fraction*span
             bands.ellipse((center-r, center-r, center+r, center+r), outline=color,
                           width=max(2, round(thickness*size/3600)))
-    step = 360 / N
+    step = 360 / outer_count
     # Printed order is opposite the platter rotation: next pose moves into top.
     sign = -1 if rotation == 'cw' else 1
     positions = []
-    for index, source in enumerate(frames):
+    for index in range(outer_count):
+        source = frames[round(index * N / outer_count) % N]
         bearing = sign * index * step  # degrees clockwise from 12 o'clock
         theta = math.radians(-90 + bearing)
         x = center + radius * math.cos(theta)
@@ -195,11 +213,11 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
         positions.append((index + 1, bearing))
     if inner_dims:
         iw, ih, ir, edge = inner_dims
-        for index in range(INNER_N):
-            # Sample one complete 54-pose cycle at 40 equal time positions.
-            source_index = round(index * N / INNER_N) % N
+        for index in range(inner_count):
+            # Sample one complete 54-pose cycle at the selected RPM's positions.
+            source_index = round(index * N / inner_count) % N
             source = frames[source_index]
-            bearing = sign * index * 360 / INNER_N
+            bearing = sign * index * 360 / inner_count
             theta = math.radians(-90 + bearing)
             x = center + ir * math.cos(theta)
             y = center + ir * math.sin(theta)
@@ -250,7 +268,11 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
                            width=max(2, size//900))
         proof.save(proof_path)
 
-    return artwork, {'frames': N, 'angular_spacing_degrees': step,
+    return artwork, {'frames': outer_count, 'source_frames': N,
+                     'outer_rpm': outer_rpm, 'inner_rpm': inner_rpm if inner_dims else None,
+                     'outer_source_indices': [round(i*N/outer_count) % N + 1
+                                              for i in range(outer_count)],
+                     'theme': theme, 'angular_spacing_degrees': step,
                      'printed_frame_order': 'counterclockwise' if rotation == 'cw' else 'clockwise',
                      'platter_rotation': rotation, 'source_canvas': frames[0].size,
                      'rendered_canvas': [width, height], 'anchor_radius_px': radius,
@@ -258,9 +280,9 @@ def compose(frames, size, margin, max_height, rotation, proof_path=None,
                      'inner_ring': inner_ring,
                      'background': background,
                      'center_mark_diameter_mm': center_mark_mm,
-                     'inner_frames': INNER_N if inner_dims else 0,
-                     'inner_source_indices': [round(i*N/INNER_N) % N + 1
-                                              for i in range(INNER_N)] if inner_dims else [],
+                     'inner_frames': inner_count if inner_dims else 0,
+                     'inner_source_indices': [round(i*N/inner_count) % N + 1
+                                              for i in range(inner_count)] if inner_dims else [],
                      'seven_inch_edge_px': inner_dims[3] if inner_dims else None,
                      'inner_rendered_canvas': list(inner_dims[:2]) if inner_dims else None}
 
@@ -278,7 +300,13 @@ def main():
     parser.add_argument('--inner-pattern', choices=('none', 'psychedelic'), default='psychedelic',
                         help='geometric inner artwork (default: psychedelic)')
     parser.add_argument('--inner-ring', choices=('none', 'seven-inch'), default='seven-inch',
-                        help='40 poses outside a 7-inch record for 45 RPM (default: seven-inch)')
+                        help='poses outside a 7-inch record (default: seven-inch)')
+    parser.add_argument('--outer-rpm', choices=tuple(RPM_COUNTS), default='33.33',
+                        help='outer animation speed: 33.33 (54 poses) or 45 (40 poses)')
+    parser.add_argument('--inner-rpm', choices=tuple(RPM_COUNTS), default='45',
+                        help='inner animation speed: 33.33 (54 poses) or 45 (40 poses)')
+    parser.add_argument('--theme', choices=tuple(THEMES), default='reggae',
+                        help='geometric pattern theme (default: reggae)')
     parser.add_argument('--center-mark-mm', type=float, default=1.0,
                         help='diameter of the central pilot dot, 0 to 1 mm (default: 1)')
     parser.add_argument('--background', choices=('black', 'white'), default='black',
@@ -299,7 +327,7 @@ def main():
         artwork, report = compose(frames, args.size, args.margin_mm,
                                   args.max_height_mm, args.rotation, args.proof,
                                   args.inner_pattern, args.inner_ring, args.center_mark_mm,
-                                  args.background)
+                                  args.background, args.outer_rpm, args.inner_rpm, args.theme)
         report['inner_pattern'] = args.inner_pattern
         artwork.save(args.output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
