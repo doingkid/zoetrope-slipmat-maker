@@ -326,5 +326,16 @@ $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();
 $('download-png').addEventListener('click',()=>exportPng(false));
 $('download-proof').addEventListener('click',()=>exportPng(true));
 $('download-zip').addEventListener('click',exportZip);
+$('copy-zip-prompt').addEventListener('click',async()=>{
+  const prompt=$('zip-prompt'), message=$('copy-prompt-status');
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(prompt.value);
+    else { prompt.select(); if (!document.execCommand('copy')) throw new Error('copy failed'); }
+    message.textContent='コピーしました。ChatGPTに画像と一緒に貼り付けてください。';
+  } catch(error) {
+    prompt.focus();prompt.select();
+    message.textContent='自動コピーできませんでした。選択中の文章を手動でコピーしてください。';
+  }
+});
 requestAnimationFrame(previewLoop);
 window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,drawArtwork};
