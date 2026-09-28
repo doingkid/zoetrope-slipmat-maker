@@ -61,3 +61,20 @@ input[type=file]::file-selector-button{background:#d9ed7c;color:#111;border:0;pa
 .prompt-motion-label{display:block;font-weight:850;font-size:.93rem;margin:0 0 8px}
 .prompt-motion-label span{display:block;color:#d9ed7c;font-size:.82rem;font-weight:650;line-height:1.5;margin-top:5px}
 #prompt-motion{display:block;width:100%;padding:13px 15px;margin:0 0 18px;background:#111;border:1px solid #999;border-radius:0;color:#fff;line-height:1.5}
+/* Make the frame-by-frame path the primary choice. */
+.mode-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;border:0;margin:0 0 24px}
+.mode-switch label{display:block;position:relative}
+.mode-switch .mode-card{display:block;height:100%;margin:0;padding:18px;border:2px solid #666;background:#242424;color:#eee;transition:border-color .15s,background .15s}
+.mode-switch .mode-card strong{display:block;margin:11px 0 6px;font-size:1.15rem;line-height:1.35}
+.mode-switch .mode-card small{display:block;font-size:.8rem;line-height:1.5;color:#bbb}
+.mode-switch .mode-card .mode-badge{display:inline-block;padding:4px 9px;width:max-content;background:#444;color:#eee;font-size:.73rem;font-weight:900;letter-spacing:.03em}
+.mode-switch .mode-card--recommended{border-color:#d9ed7c}
+.mode-switch .mode-card--recommended .mode-badge{background:#d9ed7c;color:#111}
+.mode-switch input:checked+.mode-card--recommended{background:#d9ed7c;border-color:#d9ed7c;color:#111}
+.mode-switch input:checked+.mode-card--recommended small{color:#30351a}
+.mode-switch input:checked+.mode-card--recommended .mode-badge{background:#111;color:#d9ed7c}
+.mode-switch input:checked+.mode-card--simple{background:#eee;border-color:#eee;color:#111}
+.mode-switch input:checked+.mode-card--simple small{color:#444}
+.mode-switch input:checked+.mode-card--simple .mode-badge{background:#111;color:#fff}
+.mode-switch input:focus-visible+.mode-card{outline:3px solid #e62f4a;outline-offset:3px}
+@media(max-width:650px){.mode-switch{grid-template-columns:1fr;gap:10px}.mode-switch .mode-card{padding:14px}.mode-switch .mode-card strong{font-size:1.04rem;margin:7px 0 3px}}
