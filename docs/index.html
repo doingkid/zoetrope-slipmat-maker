@@ -65,6 +65,7 @@
       <div class="settings-grid">
         <div class="field"><label for="outer-rpm">マットの外側に並ぶ大きなキャラ</label><select id="outer-rpm"><option value="33.33">33⅓回転で動く（54コマ）</option><option value="45">45回転で動く（40コマ）</option></select></div>
         <div class="field"><label for="inner-rpm">7インチ盤のすぐ外に並ぶ小さなキャラ</label><select id="inner-rpm"><option value="45">45回転で動く（40コマ）</option><option value="33.33">33⅓回転で動く（54コマ）</option></select></div>
+        <div class="field"><label for="center-rpm">7インチ盤なしで見える中心寄りのキャラ</label><select id="center-rpm"><option value="33.33">33⅓回転で動く（54コマ）</option><option value="45">45回転で動く（40コマ）</option></select></div>
         <div class="field"><label for="theme">模様</label><select id="theme"><option value="reggae">レゲエ（緑・赤・黄）</option><option value="neon">ネオン</option><option value="ocean">オーシャン</option><option value="sunset">サンセット</option><option value="monochrome">モノクロ</option></select></div>
         <div class="field"><label for="background">背景</label><select id="background"><option value="black">黒</option><option value="white">白（インク節約）</option></select></div>
       </div>
@@ -73,11 +74,21 @@
           <h3>キャラの大きさ</h3>
           <div class="size-control"><label for="outer-size">外側のキャラ <output id="outer-size-value" for="outer-size">100%</output></label><input id="outer-size" type="range" min="60" max="140" step="5" value="100"></div>
           <div class="size-control"><label for="inner-size">内側のキャラ <output id="inner-size-value" for="inner-size">100%</output></label><input id="inner-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <div class="size-control"><label for="center-size">中心寄りのキャラ <output id="center-size-value" for="center-size">100%</output></label><input id="center-size" type="range" min="60" max="140" step="5" value="100"></div>
           <p class="hint">コマを作った後、見本を見ながら調整できます。大きくしすぎると隣のキャラに重なるため、表示を確認してください。</p>
         </div>
         <div class="size-preview"><canvas id="size-canvas" width="320" height="320" aria-label="大きさ調整用のスリップマット見本"></canvas><span>サイズ調整用の見本</span></div>
       </div>
-      <details><summary>追加設定</summary><label class="check"><input id="inner-ring" type="checkbox" checked>7インチ盤のすぐ外に小さなキャラを置く</label><label class="check"><input id="pattern" type="checkbox" checked>中央とキャラの間に模様を入れる</label></details>
+      <div class="pattern-controls">
+        <h3>模様を調整</h3>
+        <div class="pattern-sliders">
+          <div class="size-control"><label for="pattern-density">模様の密度 <output id="pattern-density-value" for="pattern-density">100%</output></label><input id="pattern-density" type="range" min="50" max="150" step="10" value="100"></div>
+          <div class="size-control"><label for="pattern-width">線の太さ <output id="pattern-width-value" for="pattern-width">100%</output></label><input id="pattern-width" type="range" min="50" max="150" step="10" value="100"></div>
+          <div class="size-control"><label for="pattern-motif">模様の大きさ <output id="pattern-motif-value" for="pattern-motif">100%</output></label><input id="pattern-motif" type="range" min="50" max="150" step="10" value="100"></div>
+        </div>
+        <p class="hint">コマを作った後、スライダーを動かすと見本と回転プレビューに反映されます。</p>
+      </div>
+      <details><summary>追加設定</summary><label class="check"><input id="inner-ring" type="checkbox" checked>7インチ盤のすぐ外に小さなキャラを置く</label><label class="check"><input id="center-ring" type="checkbox" checked>7インチ盤を載せないときに見える中心寄りのキャラを置く</label><p class="hint">中心寄りのキャラは、7インチ盤を載せると隠れます。</p><label class="check"><input id="pattern" type="checkbox" checked>中央とキャラの間に模様を入れる</label></details>
     </section>
     <section class="card preview-card" aria-labelledby="preview-title">
       <div class="step"><span>03</span><h2 id="preview-title">回転を見て、画像を保存</h2></div>
@@ -105,6 +116,6 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT<span>™</span></strong><p>YOUR CHARACTER. YOUR RECORD. YOUR LOOP.</p><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
