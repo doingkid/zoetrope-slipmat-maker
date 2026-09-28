@@ -40,3 +40,10 @@ details{border-top-color:#555}
 .ticker{color:#111}
 input[type=file]{color:#bbb}
 input[type=file]::file-selector-button{background:#d9ed7c;color:#111;border:0;padding:10px 14px;margin-right:12px;font-weight:800;cursor:pointer}
+.prompt-guide{margin:24px 0 8px;padding:22px;border:1px solid #666;background:#222}
+.prompt-guide h3{margin:0 0 8px;font-size:1.15rem}
+.prompt-guide p{margin:0 0 15px;color:#bbb;font-size:.9rem;line-height:1.7}
+.prompt-guide textarea{display:block;width:100%;height:320px;resize:vertical;padding:16px;background:#111;border:1px solid #777;border-radius:0;color:#eee;font:inherit;font-size:.88rem;line-height:1.7}
+.prompt-action{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px}
+.prompt-action span{color:#d9ed7c;font-size:.86rem}
+@media(max-width:650px){.prompt-guide{padding:16px}.prompt-guide textarea{height:350px}.prompt-action button{width:100%}}
