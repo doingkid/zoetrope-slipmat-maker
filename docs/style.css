@@ -126,7 +126,7 @@ footer small{grid-column:auto;grid-row:auto}
 /* Tap-to-spin example: one revolution at 33⅓ rpm. */
 .hero-example-button{display:block;width:100%;min-height:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;overflow:hidden}
 .hero-example-button:hover:not(:disabled){background:none;transform:none}
-.hero-example-button img{animation:example-spin 1.8s linear infinite;animation-play-state:paused;transform-origin:center center}
+.hero-example-button img{animation:example-spin 1.8s steps(54,end) infinite;animation-play-state:paused;transform-origin:center center}
 .hero-example-button[aria-pressed="true"] img{animation-play-state:running}
 .hero-example-button:focus-visible{outline:3px solid #d9ed7c;outline-offset:4px}
 @keyframes example-spin{to{transform:rotate(360deg)}}
