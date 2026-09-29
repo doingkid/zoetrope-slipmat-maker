@@ -122,3 +122,11 @@ footer strong{font-size:1.7rem}
 footer small{grid-column:auto;grid-row:auto}
 @media(max-width:900px){.hero-grid{grid-template-columns:minmax(0,.9fr) minmax(270px,1.1fr);min-height:0}.hero h1{font-size:clamp(2.35rem,4vw,3.4rem)}}
 @media(max-width:650px){.topbar{height:58px}.hero-grid{display:flex;flex-direction:column;gap:20px;padding:30px 0 34px}.hero-copy{padding:0}.hero h1{font-size:clamp(2.2rem,8.5vw,3.3rem);margin-bottom:15px}.hero-description{font-size:.9rem;margin-bottom:21px}.hero-example{position:relative;right:auto;top:auto;width:100%;height:auto;opacity:1;pointer-events:auto}.hero-example img{width:min(100%,460px);margin:auto}.hero-example figcaption{font-size:.73rem}.step span{min-width:37px}.footer-inner{display:block}footer strong{font-size:1.7rem}footer small{margin-top:17px}}
+
+/* Tap-to-spin example: one revolution at 33⅓ rpm. */
+.hero-example-button{display:block;width:100%;min-height:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;overflow:hidden}
+.hero-example-button:hover:not(:disabled){background:none;transform:none}
+.hero-example-button img{animation:example-spin 1.8s linear infinite;animation-play-state:paused;transform-origin:center center}
+.hero-example-button[aria-pressed="true"] img{animation-play-state:running}
+.hero-example-button:focus-visible{outline:3px solid #d9ed7c;outline-offset:4px}
+@keyframes example-spin{to{transform:rotate(360deg)}}
