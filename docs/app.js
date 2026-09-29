@@ -72,8 +72,8 @@ async function framesFromImage(file, motion, token) {
     if (token !== state.generation) return null;
     const phase = 2 * Math.PI * i / SOURCE_COUNT;
     const c = canvas(w, h), ctx = c.getContext('2d');
-    const sway = motion !== 'bounce';
-    const jump = motion !== 'sway';
+    const sway = motion === 'sway' || motion === 'groove';
+    const jump = motion === 'bounce' || motion === 'groove';
     const lean = sway ? rad(6.5 * Math.sin(phase)) : 0;
     const shift = sway ? box.width * .025 * Math.sin(phase) : 0;
     const lift = jump ? box.height * .07 * (1 - Math.cos(2 * phase)) / 2 : 0;
