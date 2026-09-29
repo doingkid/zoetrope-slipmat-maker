@@ -384,7 +384,7 @@ exampleButton.addEventListener('click',()=>{
   const spinning=exampleButton.getAttribute('aria-pressed')!=='true';
   exampleButton.setAttribute('aria-pressed',String(spinning));
   exampleButton.setAttribute('aria-label',spinning?'制作例の回転を止める':'制作例を回す');
-  exampleCaption.textContent=spinning?'制作例 · タップで停止':'制作例 · タップで回す';
+  exampleCaption.textContent=spinning?'制作例 · 33⅓回転 / 30fps · タップで停止':'制作例 · 33⅓回転 / 30fps · タップで回す';
 });
 syncControls();resetFrames();
 requestAnimationFrame(previewLoop);
