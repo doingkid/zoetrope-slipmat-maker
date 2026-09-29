@@ -381,10 +381,13 @@ $('copy-zip-prompt').addEventListener('click',async()=>{
 const exampleButton=$('example-spin-button');
 const exampleCaption=$('example-spin-caption');
 exampleButton.addEventListener('click',()=>{
-  const spinning=exampleButton.getAttribute('aria-pressed')!=='true';
-  exampleButton.setAttribute('aria-pressed',String(spinning));
-  exampleButton.setAttribute('aria-label',spinning?'制作例の回転を止める':'制作例を回す');
-  exampleCaption.textContent=spinning?'制作例 · 33⅓回転 / 30fps · タップで停止':'制作例 · 33⅓回転 / 30fps · タップで回す';
+  const current=exampleButton.dataset.mode;
+  const next=current==='stop'?'33':current==='33'?'45':'stop';
+  exampleButton.dataset.mode=next;
+  if(next!=='stop')exampleButton.dataset.rate=next;
+  exampleButton.setAttribute('aria-pressed',String(next!=='stop'));
+  exampleButton.setAttribute('aria-label',next==='33'?'制作例を45回転に切り替える':next==='45'?'制作例の回転を止める':'制作例を33⅓回転で回す');
+  exampleCaption.textContent=next==='33'?'制作例 · 33⅓回転 / 30fps · タップで45回転':next==='45'?'制作例 · 45回転 / 30fps · タップで停止':'制作例 · タップで33⅓回転';
 });
 syncControls();resetFrames();
 requestAnimationFrame(previewLoop);
