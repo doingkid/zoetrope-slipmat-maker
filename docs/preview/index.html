@@ -1,0 +1,46 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SPINMAT · 編集画面プレビュー</title><link rel="stylesheet" href="../style.css?v=16"><link rel="stylesheet" href="editor.css?v=1"></head><body class="editor-body"><header class="editor-header"><strong>SPINMAT <small>試作版</small></strong><a href="../">現在の公開版へ</a></header><main class="workspace"><aside class="settings-pane"><nav class="editor-tabs" role="tablist" aria-label="編集項目"><button id="tab-source" role="tab" aria-controls="panel-source" aria-selected="true" data-panel="source">素材</button><button id="tab-motion" role="tab" aria-controls="panel-motion" aria-selected="false" tabindex="-1" data-panel="motion">動き・配置</button><button id="tab-pattern" role="tab" aria-controls="panel-pattern" aria-selected="false" tabindex="-1" data-panel="pattern">模様・背景</button></nav><div class="settings-scroll"><section id="panel-source" role="tabpanel" aria-labelledby="tab-source">
+      <div class="step"><span>01</span><h2 id="source-title">アニメ素材を用意する</h2></div>
+      <p class="section-intro">54枚の連番PNGなら、キャラのポーズが変わるアニメに。画像1枚から作る場合は、画像全体を動かす簡易版です。</p>
+      <div class="mode-switch" role="group" aria-label="素材の種類">
+        <label><input type="radio" name="source-mode" value="zip"><span class="mode-card mode-card--recommended"><small class="mode-badge">おすすめ・本来の作り方</small><strong>54枚のZIPを使う</strong><small>手足のポーズまで動かせる</small></span></label>
+        <label><input type="radio" name="source-mode" value="image" checked><span class="mode-card mode-card--simple"><small class="mode-badge">かんたん版</small><strong>画像1枚から作る</strong><small>画像全体をゆらす・ジャンプさせる</small></span></label>
+      </div>
+      <div id="image-input-area">
+        <label class="file-box" for="image-file"><strong>キャラの画像を選ぶ</strong><small>背景透過PNGがおすすめ。JPEGも使えますが背景ごと動きます。</small></label>
+        <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp">
+        <div class="field"><label for="motion">キャラの動き</label><select id="motion"><option value="sway">左右にゆらゆら</option><option value="bounce">軽くジャンプ</option><option value="groove">ゆらゆら＋ジャンプ</option><option value="still">静止（動きなし）</option></select></div>
+        <p class="hint">静止も選べます。腕や足の踏み替えには、別々のポーズを収めた54枚ZIPを使ってください。</p>
+      </div>
+      <div id="zip-input-area" hidden>
+        <label class="file-box" for="zip-file"><strong>54枚入りZIPを選ぶ</strong><small>透過PNGの001.png〜054.png。同じ大きさの画像が必要です。</small></label>
+        <input id="zip-file" type="file" accept=".zip,application/zip">
+        <details class="prompt-guide"><summary>54枚ZIPの作り方・プロンプト</summary>
+          <h3>ChatGPTで54枚のZIPを作るなら</h3>
+          <p>キャラの画像をChatGPTに添付して、下の文章を送ってください。できたZIPを保存し、この画面で選びます。</p>
+          <label class="prompt-motion-label" for="prompt-motion">動きの指定 <span>下は一例です。好きな動きに書き換えられます。</span></label>
+          <input id="prompt-motion" type="text" value="ゆったり左右にステップを踏み、左右の足を交互に出す、1周期のループにしてください。">
+          <textarea id="zip-prompt" readonly spellcheck="false" aria-label="ChatGPTに送るプロンプト">添付したキャラ画像をもとに、ゾートロープ用のアニメーションを54コマ作ってください。ゆったり左右にステップを踏み、左右の足を交互に出す、1周期のループにしてください。
+
+元のキャラの絵柄・顔・服・色を保ち、別のキャラに描き直さないでください。各コマで姿勢が少しずつ変わり、054.pngから001.pngへも自然につながるようにしてください。単に静止画全体を左右に動かすだけにはしないでください。
+
+各コマは同じ大きさの512×512pxの背景透過PNGにしてください。全身が切れないようにし、キャラの大きさと中心位置、足元の基準位置を揃えてください。背景・床・影・文字は不要です。
+
+ファイル名を001.pngから054.pngにして、54枚だけをZIPの直下にまとめ、ZIPファイルをダウンロードできる形で返してください。実際にファイルを作成・確認してください。ファイル生成ができない場合は、その旨を教えてください。</textarea>
+          <div class="prompt-action"><button id="copy-zip-prompt" type="button" class="secondary">プロンプトをコピー</button><span id="copy-prompt-status" role="status" aria-live="polite"></span></div>
+        </details>
+      </div>
+      <button id="try-sample" type="button" class="secondary">サンプルで試す</button><p id="source-status" class="status" role="status">画像を選んでください。</p>
+      
+    </section><section id="panel-motion" role="tabpanel" aria-labelledby="tab-motion" hidden><h2>動き・配置</h2><div id="motion-slot"></div><div class="field"><label for="outer-rpm">いちばん外側のキャラ（マットのふち）</label><select id="outer-rpm"><option value="45">45回転で動く（40コマ）</option><option value="33.33">33⅓回転で動く（54コマ）</option><option value="none">なし</option></select></div><div class="field"><label for="inner-rpm">真ん中のキャラ（7インチ盤の外側）</label><select id="inner-rpm"><option value="45">45回転で動く（40コマ）</option><option value="33.33">33⅓回転で動く（54コマ）</option><option value="none">なし</option></select></div><div class="field"><label for="center-rpm">いちばん内側のキャラ（7インチ盤を置くと隠れる）</label><select id="center-rpm"><option value="33.33">33⅓回転で動く（54コマ）</option><option value="45">45回転で動く（40コマ）</option><option value="none">なし</option></select></div>
+          <h3>キャラの大きさ</h3>
+          <div class="size-control"><label for="outer-size">いちばん外側のキャラ <output id="outer-size-value" for="outer-size">100%</output></label><input id="outer-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <div class="size-control"><label for="inner-size">真ん中のキャラ <output id="inner-size-value" for="inner-size">100%</output></label><input id="inner-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <div class="size-control"><label for="center-size">いちばん内側のキャラ <output id="center-size-value" for="center-size">100%</output></label><input id="center-size" type="range" min="60" max="140" step="5" value="100"></div>
+          <p class="hint">素材を選ぶと見本が表示されます。大きくしすぎると隣のキャラに重なるため、表示を確認してください。いちばん内側のキャラは7インチ盤を載せると隠れます。</p></section><section id="panel-pattern" role="tabpanel" aria-labelledby="tab-pattern" hidden><h2>模様・背景</h2><div class="field"><label for="theme">模様</label><select id="theme"><option value="reggae">レゲエ（緑・赤・黄）</option><option value="neon">ネオン</option><option value="ocean">オーシャン</option><option value="sunset">サンセット</option><option value="monochrome">モノクロ</option></select></div><div class="field"><label for="background">背景</label><select id="background"><option value="black">黒</option><option value="white">白（インク節約）</option><option value="transparent">透過PNG</option></select></div>
+        <div class="pattern-heading"><h3>模様を調整</h3><label class="check"><input id="pattern" type="checkbox" checked>模様を入れる</label></div>
+        <div class="pattern-sliders" id="pattern-sliders">
+          <div class="size-control"><label for="pattern-density">模様の密度 <output id="pattern-density-value" for="pattern-density">100%</output></label><input id="pattern-density" type="range" min="50" max="150" step="10" value="100"></div>
+          <div class="size-control"><label for="pattern-width">線の太さ <output id="pattern-width-value" for="pattern-width">100%</output></label><input id="pattern-width" type="range" min="50" max="150" step="10" value="100"></div>
+          <div class="size-control"><label for="pattern-motif">模様の大きさ <output id="pattern-motif-value" for="pattern-motif">100%</output></label><input id="pattern-motif" type="range" min="50" max="150" step="10" value="100"></div>
+        </div>
+        <p class="hint">素材を選んだ後、スライダーを動かすと見本と回転プレビューに反映されます。</p></section></div></aside><section class="preview-pane" aria-label="リアルタイムプレビュー"><div class="view-tabs" role="group" aria-label="表示の切替"><button id="view-mat" aria-pressed="true">マット全体</button><button id="view-character" aria-pressed="false">キャラの動き</button><button id="expand-preview" class="secondary" aria-label="プレビューを大きく表示">拡大表示</button></div><div id="preview-stage" class="preview-stage" data-view="mat"><div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="30fps回転プレビュー"></canvas></div><div id="frames-preview" class="frames-preview" hidden><canvas id="character-canvas" width="280" height="280" aria-label="キャラの動きのプレビュー"></canvas><div><strong>キャラの動き</strong><p>54コマのつながりを確認できます。</p></div></div><div class="zoom-controls"><button id="zoom-out" class="secondary" aria-label="縮小">−</button><output id="zoom-value">100%</output><button id="zoom-in" class="secondary" aria-label="拡大">＋</button><button id="zoom-reset" class="secondary">全体表示</button></div></div><div class="transport"><button id="preview-stop" class="secondary" aria-pressed="false">停止</button><button data-rpm="33.33" aria-pressed="true">33⅓</button><button data-rpm="45" aria-pressed="false">45</button><span id="preview-rate-status" role="status">33⅓回転 / 30fps</span><select id="preview-rpm" hidden><option value="33.33">33⅓</option><option value="45">45</option></select></div><div class="overlay-row"><label for="record-overlay">盤を重ねる</label><select id="record-overlay"><option value="none">なし</option><option value="7">7インチ</option><option value="10">10インチ</option></select><span class="hint">ピンチで拡大・ドラッグで移動</span></div><p id="output-status" class="status" role="status">素材を選んでください。</p></section></main><footer class="save-bar"><span>画像処理は端末内で行います</span><button id="download-png" disabled>PNGを保存</button><button id="download-proof" class="secondary" disabled>番号付きPNG</button></footer><canvas id="size-canvas" width="320" height="320" hidden></canvas><script src="../zip.js"></script><script src="app.js?v=1"></script></body></html>
