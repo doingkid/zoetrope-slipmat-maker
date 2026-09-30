@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111111">
   <title>Zoetrope Slipmat Maker</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
   <header class="hero">
@@ -64,7 +64,7 @@
         <div class="field"><label for="inner-rpm">真ん中のキャラ（7インチ盤の外側）</label><select id="inner-rpm"><option value="45">45回転で動く（40コマ）</option><option value="33.33">33⅓回転で動く（54コマ）</option><option value="none">なし</option></select></div>
         <div class="field"><label for="center-rpm">いちばん内側のキャラ（7インチ盤を置くと隠れる）</label><select id="center-rpm"><option value="33.33">33⅓回転で動く（54コマ）</option><option value="45">45回転で動く（40コマ）</option><option value="none">なし</option></select></div>
         <div class="field"><label for="theme">模様</label><select id="theme"><option value="reggae">レゲエ（緑・赤・黄）</option><option value="neon">ネオン</option><option value="ocean">オーシャン</option><option value="sunset">サンセット</option><option value="monochrome">モノクロ</option></select></div>
-        <div class="field"><label for="background">背景</label><select id="background"><option value="black">黒</option><option value="white">白（インク節約）</option></select></div>
+        <div class="field"><label for="background">背景</label><select id="background"><option value="black">黒</option><option value="white">白（インク節約）</option><option value="transparent">透過PNG</option></select></div>
       </div>
       <div class="size-controls">
         <div class="size-fields">
@@ -90,11 +90,11 @@
       <div class="step"><span>03</span><h2 id="preview-title">回転を見て、画像を保存</h2></div>
       <p class="section-intro">撮影時の見え方をチェック。仕上がったらPNGを保存。</p>
       <div class="preview-layout">
-        <div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
+        <div class="zoom-controls" role="group" aria-label="プレビューの拡大"><button id="zoom-out" type="button" class="secondary" aria-label="縮小">−</button><output id="zoom-value" aria-live="polite">100%</output><button id="zoom-in" type="button" class="secondary" aria-label="拡大">＋</button><button id="zoom-reset" type="button" class="secondary">全体表示</button></div><p class="hint">ピンチ・マウスホイールで拡大、拡大中はドラッグで移動できます。</p><div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
         <div class="preview-controls">
           <div class="field"><label for="preview-rpm">プレビューの回転数</label><select id="preview-rpm"><option value="33.33">33⅓回転</option><option value="45">45回転</option></select></div>
           <div class="field"><label for="record-overlay">レコードを重ねて見る</label><select id="record-overlay"><option value="none">重ねない</option><option value="7">7インチ盤を重ねて見る</option><option value="10">10インチ盤を重ねて見る</option></select></div>
-          <p class="hint">30fpsのカメラで撮影した場合の理想的な見え方を模擬します。実際の撮影では照明やシャッター速度でも見え方が変わります。</p>
+          <p id="preview-rate-status" class="status" role="status">33⅓回転 / 30fps</p><p class="hint">30fpsのカメラで撮影した場合の理想的な見え方を模擬します。実際の撮影では照明やシャッター速度でも見え方が変わります。</p>
           <p id="output-status" class="status" role="status">素材を選ぶと、ここで回転を確認できます。</p>
           <button id="download-png" type="button" disabled>完成PNGを保存</button>
           <button id="download-proof" type="button" class="secondary" disabled>番号付き確認PNGを保存</button>
@@ -113,6 +113,7 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT</strong><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>
+
