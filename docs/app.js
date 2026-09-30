@@ -25,7 +25,7 @@ function resetFrames() {
   state.generation++;
   state.frames = null;
   state.previewDisc = null;
-  for (const id of ['download-png', 'download-proof']) $(id).disabled = true;
+  for (const id of ['download-png', 'download-pdf', 'download-proof']) $(id).disabled = true;
   $('frames-preview').hidden = true;
   const small=$('size-canvas').getContext('2d');
   small.clearRect(0,0,320,320);
@@ -367,6 +367,36 @@ async function exportPng(proof) {
   } catch(error) { status('output-status',`書き出せませんでした: ${error.message}`,true); }
   finally { state.exporting=false;button.disabled=false; }
 }
+async function exportPdf() {
+  if (state.exporting || !state.frames) return;
+  state.exporting = true;
+  const button = $('download-pdf');
+  button.disabled = true;
+  status('output-status', '12インチ実寸のPDFを書き出しています…');
+  let output;
+  try {
+    await new Promise(resolve => setTimeout(resolve, 40));
+    output = drawArtwork(3600);
+    // PDF is opaque: white is used outside the circle and under transparent areas.
+    const ctx = output.getContext('2d');
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, output.width, output.height);
+    ctx.restore();
+    const jpeg = await new Promise((resolve, reject) =>
+      output.toBlob(blob => blob ? resolve(blob) : reject(new Error('PDF用画像を生成できませんでした。')), 'image/jpeg', 0.98)
+    );
+    saveBlob(await PdfExport.fromJpeg(jpeg, output.width), 'slipmat_12inch.pdf');
+    status('output-status', '12インチ実寸のPDFを保存しました。透過部分は白になります。');
+  } catch (error) {
+    status('output-status', `PDFを書き出せませんでした: ${error.message}`, true);
+  } finally {
+    if (output) output.width = output.height = 0;
+    state.exporting = false;
+    button.disabled = false;
+  }
+}
 async function prepareFrames() {
   resetFrames();
   const isImage=document.querySelector('input[name="source-mode"]:checked').value==='image';
@@ -379,7 +409,7 @@ async function prepareFrames() {
     if(!result || token!==state.generation)return;
     state.frames=result.frames;state.footFraction=result.footFraction;
     $('frames-preview').hidden=false;
-    for(const id of ['download-png','download-proof'])$(id).disabled=false;
+    for(const id of ['download-png','download-pdf','download-proof'])$(id).disabled=false;
     status('source-status','54コマの準備ができました。');
     updatePreview();
   } catch(error){ if(token===state.generation)status('source-status',`読み込めませんでした: ${error.message}`,true); }
@@ -406,6 +436,7 @@ for(const id of ['pattern-density','pattern-width','pattern-motif']) $(id).addEv
 });
 $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1; $('preview-rate-status').textContent=($('preview-rpm').value==='45'?'45':'33⅓')+'回転 / 30fps';});
 $('download-png').addEventListener('click',()=>exportPng(false));
+$('download-pdf').addEventListener('click',exportPdf);
 $('download-proof').addEventListener('click',()=>exportPng(true));
 const motionExample=$('prompt-motion').value;
 const zipPromptTemplate=$('zip-prompt').value.replace(motionExample,'{{motion}}');
