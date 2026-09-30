@@ -371,6 +371,7 @@ async function exportPng(proof) {
 async function prepareFrames() {
   resetFrames();
   const isImage=document.querySelector('input[name="source-mode"]:checked').value==='image';
+  $('motion').disabled=!isImage;
   const file=$(isImage?'image-file':'zip-file').files[0];
   if(!file){status('source-status',isImage?'画像を選んでください。':'ZIPを選んでください。');return;}
   const token=state.generation;
@@ -464,7 +465,7 @@ $('record-overlay').addEventListener('change',()=>state.lastFrame=-1);
 $('expand-preview').addEventListener('click',()=>{const expanded=document.body.classList.toggle('preview-expanded');$('expand-preview').textContent=expanded?'閉じる':'拡大表示';$('expand-preview').setAttribute('aria-expanded',String(expanded));});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){document.body.classList.remove('preview-expanded');$('expand-preview').textContent='拡大表示';$('expand-preview').setAttribute('aria-expanded','false');}});
 $('try-sample').addEventListener('click',()=>{
-  resetFrames();state.frames=Array.from({length:54},(_,i)=>{
+  resetFrames();$('motion').disabled=true;state.frames=Array.from({length:54},(_,i)=>{
     const c=canvas(180,220),ctx=c.getContext('2d'),phase=2*Math.PI*i/54;
     ctx.translate(90,190-12*(1-Math.cos(phase)));ctx.rotate(.10*Math.sin(phase));
     ctx.fillStyle='#d9ed7c';ctx.beginPath();ctx.ellipse(0,-65,45,60,0,0,Math.PI*2);ctx.fill();
