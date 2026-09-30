@@ -180,6 +180,95 @@ function drawPattern(ctx, size, limit, count, theme, density = 1, stroke = 1, mo
     }
   }
 }
+// Render each new motif inside a free annulus, never across a character ring.
+function drawMathPattern(ctx, size, inner, outer, theme, type, density, stroke, motif) {
+  if (outer <= inner) return;
+  const mid = size / 2, unit = size / 3600, span = outer - inner;
+  const colors = THEMES[theme];
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const point = (f, a) => [mid + (inner + span * f) * Math.cos(a), mid + (inner + span * f) * Math.sin(a)];
+  const lineWidth = Math.max(.75, 4 * unit * stroke);
+  const dot = (p, radius, color, fill = false) => {
+    ctx.beginPath(); ctx.arc(...p, Math.max(.5, radius), 0, Math.PI * 2);
+    ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = lineWidth;
+    if (fill) ctx.fill(); else ctx.stroke();
+  };
+  ctx.save();
+  ctx.beginPath(); ctx.arc(mid, mid, outer, 0, 2 * Math.PI);
+  if (inner > 0) { ctx.moveTo(mid + inner, mid); ctx.arc(mid, mid, inner, 0, 2 * Math.PI, true); }
+  ctx.clip();
+  if (type === 'golden-spiral') {
+    const arms = Math.max(1, Math.round(3 * density));
+    const growth = 2 * Math.log(phi) / Math.PI;
+    const min = .06 / motif, sweep = Math.log(1 / min) / growth;
+    for (let arm = 0; arm < arms; arm++) {
+      ctx.beginPath();
+      for (let i = 0; i <= 300; i++) {
+        const theta = sweep * i / 300;
+        const p = point(min * Math.exp(growth * theta), theta + arm * 2 * Math.PI / arms);
+        if (i) ctx.lineTo(...p); else ctx.moveTo(...p);
+      }
+      ctx.strokeStyle = colors[arm % 3]; ctx.lineWidth = Math.max(1, 9 * unit * stroke); ctx.stroke();
+    }
+  } else if (type === 'fibonacci') {
+    const seeds = Math.round(250 * density), goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 1; i <= seeds; i++) {
+      const p = point(.03 + .94 * Math.sqrt(i / seeds), i * goldenAngle);
+      // Golden-angle placement; the size slider changes seed size, not the angle.
+      const radius = span * (.012 + .009 * i / seeds) * motif;
+      dot(p, radius, colors[i % 3]);
+    }
+  } else if (type === 'penrose-inspired') {
+    // Fivefold concept from the approved preview, not an exact Penrose tiling.
+    const levels = Math.max(2, Math.round(4 * density));
+    for (let level = 0; level < levels; level++) {
+      const lo = .04 + .92 * level / levels, hi = .04 + .92 * (level + 1) / levels;
+      const middle = (lo + hi) / 2;
+      for (let j = 0; j < 10; j++) {
+        const a = j * Math.PI / 5 + level * Math.PI / 10;
+        const b = a + Math.PI / 5, offset = Math.PI / 10 * motif;
+        const polygons = [
+          [point(lo,a), point(middle,a+offset), point(hi,b), point(middle,b+offset)],
+          [point(lo,a), point(hi,a), point(middle,a+offset), point(lo,b)],
+        ];
+        polygons.forEach((points, index) => {
+          ctx.globalAlpha = .4; fillPoly(ctx, points, colors[(level+j+index)%3]);
+          ctx.globalAlpha = 1; ctx.strokeStyle = colors[(level+j+1)%3]; ctx.lineWidth = lineWidth; ctx.stroke();
+        });
+      }
+    }
+  } else if (type === 'branch-fractal') {
+    const roots = Math.max(4, Math.round(8 * density));
+    const depth = 5, opening = .24 * motif;
+    const map = (x,y) => point(Math.hypot(x,y), Math.atan2(y,x));
+    function grow(x, y, angle, length, remaining, seed) {
+      if (!remaining) return;
+      const nx=x+length*Math.cos(angle), ny=y+length*Math.sin(angle);
+      const p=map(x,y), q=map(nx,ny), color=colors[(seed+remaining)%3];
+      ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q);
+      ctx.strokeStyle=color; ctx.lineWidth=lineWidth*(remaining>2?1.7:1); ctx.stroke();
+      dot(q, span * (remaining>2?.014:.008) * motif, color, true);
+      grow(nx,ny,angle-opening,length*.83,remaining-1,seed);
+      grow(nx,ny,angle+opening,length*.83,remaining-1,seed);
+    }
+    for(let i=0;i<roots;i++) {
+      const angle=i*2*Math.PI/roots;
+      grow(.04*Math.cos(angle),.04*Math.sin(angle),angle,.25,depth,i);
+    }
+  } else if (type === 'cell-fractal') {
+    const roots=Math.max(4,Math.round(7*density));
+    function colony(f, angle, level, seed) {
+      const radius=span*[.072,.051,.034,.021,.012][level]*motif;
+      dot(point(f,angle),radius,colors[(seed+level)%3]);
+      if(level===4)return;
+      const next=f+[.17,.19,.18,.15][level];
+      for(const delta of [-.22,0,.22]) colony(next,angle+delta/(level+1),level+1,seed+Math.round(delta*10)+3);
+    }
+    for(let i=0;i<roots;i++)colony(.17,i*2*Math.PI/roots,0,i);
+    circle(ctx,mid,mid,inner+.045*span,colors[2],lineWidth);
+  }
+  ctx.restore();
+}
 function drawRing(ctx, frames, size, geometry, count, sign) {
   const center = size / 2;
   for (let i = 0; i < count; i++) {
@@ -217,14 +306,18 @@ function drawArtwork(size) {
   if ($('pattern').checked) {
     const density=Number($('pattern-density').value)/100, stroke=Number($('pattern-width').value)/100;
     const motif=Number($('pattern-motif').value)/100;
-    drawPattern(ctx,size,center ? center.radius-center.h/2-12*u : inner ? inner.edge-8*u : outer.cap-outer.h,
+    const patternType = $('pattern-type').value;
+    const mainLimit = center ? center.radius-center.h/2-12*u : inner ? inner.edge-8*u : outer.cap-outer.h;
+    if (patternType === 'classic') drawPattern(ctx,size,mainLimit,
                 center ? centerCount : inner ? innerCount : outerCount,$('theme').value,density,stroke,motif);
+    else drawMathPattern(ctx,size,20*u,mainLimit-10*u,$('theme').value,patternType,density,stroke,motif);
     if (center) {
       const start=center.radius+center.h/2+12*u;
       const end=inner ? inner.edge-20*u : outer.cap-outer.h-15*u;
       if (end>start) {
         const [green,red,gold]=THEMES[$('theme').value],span=end-start;
-        for (const [f,w,color] of [[.25,9,green],[.55,7,red],[.82,10,gold]])
+        if (patternType !== 'classic') drawMathPattern(ctx,size,start,end,$('theme').value,patternType,density,stroke,motif);
+        else for (const [f,w,color] of [[.25,9,green],[.55,7,red],[.82,10,gold]])
           circle(ctx,mid,mid,start+f*span,color,Math.max(2,w*u*stroke));
       }
     }
@@ -232,7 +325,8 @@ function drawArtwork(size) {
       const start=inner.radius+inner.h/2+15*u, end=outer.cap-outer.h-15*u;
       if (end > start) {
         const [green,red,gold]=THEMES[$('theme').value],span=end-start;
-        for (const [f,w,color] of [[.16,11,green],[.36,8,gold],[.56,13,red],[.78,7,gold]])
+        if (patternType !== 'classic') drawMathPattern(ctx,size,start,end,$('theme').value,patternType,density,stroke,motif);
+        else for (const [f,w,color] of [[.16,11,green],[.36,8,gold],[.56,13,red],[.78,7,gold]])
           circle(ctx,mid,mid,start+f*span,color,Math.max(2,w*u*stroke));
       }
     }
@@ -441,9 +535,9 @@ for (const input of document.querySelectorAll('input[name="source-mode"]')) inpu
 for (const id of ['image-file','zip-file','motion']) $(id).addEventListener('change',prepareFrames);
 function syncControls() {
   for (const ring of ['outer','inner','center']) $(''+ring+'-size').disabled=$(''+ring+'-rpm').value==='none';
-  for (const id of ['theme','pattern-density','pattern-width','pattern-motif']) $(id).disabled=!$('pattern').checked;
+  for (const id of ['pattern-type','theme','pattern-density','pattern-width','pattern-motif']) $(id).disabled=!$('pattern').checked;
 }
-for(const id of ['outer-rpm','inner-rpm','center-rpm','theme','background','pattern'])$(id).addEventListener('change',()=>{syncControls();updatePreview();});
+for(const id of ['outer-rpm','inner-rpm','center-rpm','pattern-type','theme','background','pattern'])$(id).addEventListener('change',()=>{syncControls();updatePreview();});
 let pendingPreview=false;
 function schedulePreview(){if(pendingPreview)return;pendingPreview=true;requestAnimationFrame(()=>{pendingPreview=false;updatePreview();});}
 for(const ring of ['outer','inner','center']) $(''+ring+'-size').addEventListener('input',()=>{
