@@ -131,3 +131,12 @@ footer small{grid-column:auto;grid-row:auto}
 .hero-example-button[aria-pressed="true"] img{animation-play-state:running}
 .hero-example-button:focus-visible{outline:3px solid #d9ed7c;outline-offset:4px}
 @keyframes example-spin{to{transform:rotate(360deg)}}
+
+
+/* Detail inspection and alpha preview; checkerboard is never exported. */
+.zoom-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px}
+.zoom-controls output{min-width:60px;text-align:center;font-variant-numeric:tabular-nums}
+.preview-card .turntable{overflow:hidden}
+#disc-canvas{touch-action:none;cursor:grab;border-radius:0}
+#disc-canvas:active{cursor:grabbing}
+#disc-canvas.transparent-preview,#size-canvas.transparent-preview{background:repeating-conic-gradient(#777 0 25%,#aaa 0 50%) 50%/24px 24px}
