@@ -198,7 +198,7 @@ function drawArtwork(size, proof = false) {
   const background = $('background').value;
   if (background === 'white') { ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); }
   ctx.save(); ctx.beginPath();ctx.arc(mid,mid,mid-.5,0,2*Math.PI);ctx.clip();
-  ctx.fillStyle = background === 'white' ? '#fff' : '#000';ctx.fillRect(0,0,size,size);
+  if (background !== 'transparent') { ctx.fillStyle = background === 'white' ? '#fff' : '#000';ctx.fillRect(0,0,size,size); }
   const [sw,sh] = [state.frames[0].width,state.frames[0].height];
   const outerCount = countFor($('outer-rpm').value), innerCount = countFor($('inner-rpm').value);
   const centerCount = countFor($('center-rpm').value);
@@ -261,12 +261,58 @@ function updatePreview() {
   if (!state.frames) return;
   try {
     state.previewDisc = drawArtwork(1200);
+    for (const id of ['disc-canvas','size-canvas']) $(id).classList.toggle('transparent-preview', $('background').value === 'transparent');
     const small=$('size-canvas').getContext('2d');
     small.clearRect(0,0,320,320);small.drawImage(state.previewDisc,0,0,320,320);
     status('output-status','30fpsの回転プレビューを表示しています。');
   }
   catch (error) { status('output-status',error.message,true); }
 }
+const view = { zoom: 1, x: 0, y: 0 };
+const pointers = new Map();
+const disc = $('disc-canvas');
+function setView(zoom, x = view.x, y = view.y) {
+  view.zoom = Math.max(1, Math.min(8, zoom));
+  const limit = 600 * (view.zoom - 1);
+  view.x = Math.max(-limit, Math.min(limit, x));
+  view.y = Math.max(-limit, Math.min(limit, y));
+  $('zoom-value').textContent = Math.round(view.zoom * 100) + '%';
+  $('zoom-out').disabled = view.zoom === 1;
+  $('zoom-in').disabled = view.zoom === 8;
+  state.lastFrame = -1;
+}
+function zoomAt(zoom, point) {
+  const next = Math.max(1, Math.min(8, zoom)), ratio = next / view.zoom;
+  setView(next, point.x - (point.x - view.x) * ratio, point.y - (point.y - view.y) * ratio);
+}
+function point(event) {
+  const box = disc.getBoundingClientRect();
+  return { x: (event.clientX - box.left) * 1200 / box.width - 600,
+           y: (event.clientY - box.top) * 1200 / box.height - 600 };
+}
+function gesture() {
+  const points = [...pointers.values()];
+  if (points.length < 2) return { center: points[0], distance: 0 };
+  return { center: { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 },
+           distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) };
+}
+disc.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+  pointers.set(event.pointerId, point(event)); disc.setPointerCapture(event.pointerId);
+});
+disc.addEventListener('pointermove', event => {
+  if (!pointers.has(event.pointerId)) return;
+  const before = gesture(); pointers.set(event.pointerId, point(event)); const after = gesture();
+  if (before.distance > 0 && after.distance > 0) zoomAt(view.zoom * after.distance / before.distance, before.center);
+  setView(view.zoom, view.x + after.center.x - before.center.x, view.y + after.center.y - before.center.y);
+});
+for (const type of ['pointerup','pointercancel','lostpointercapture']) disc.addEventListener(type, event => pointers.delete(event.pointerId));
+disc.addEventListener('wheel', event => { event.preventDefault(); zoomAt(view.zoom * Math.exp(-event.deltaY * .002), point(event)); }, { passive: false });
+$('zoom-in').addEventListener('click', () => zoomAt(view.zoom * 1.5, {x:0,y:0}));
+$('zoom-out').addEventListener('click', () => zoomAt(view.zoom / 1.5, {x:0,y:0}));
+$('zoom-reset').addEventListener('click', () => setView(1,0,0));
+setView(1);
+
 function previewLoop(now) {
   const frame = Math.floor((now-state.started)*30/1000);
   if (frame !== state.lastFrame) {
@@ -280,8 +326,9 @@ function previewLoop(now) {
     ctx.clearRect(0,0,1200,1200);
     if (state.previewDisc) {
       const rpm=$('preview-rpm').value==='45'?45:100/3;
-      ctx.save();ctx.translate(600,600);ctx.rotate(2*Math.PI*(rpm/60)*(frame/30));
+      ctx.save();ctx.translate(600+view.x,600+view.y);ctx.scale(view.zoom,view.zoom);ctx.rotate(2*Math.PI*(rpm/60)*(frame/30));
       ctx.drawImage(state.previewDisc,-600,-600);ctx.restore();
+      ctx.save();ctx.translate(600+view.x,600+view.y);ctx.scale(view.zoom,view.zoom);ctx.translate(-600,-600);
       const recordInches=Number($('record-overlay').value);
       if (recordInches===7 || recordInches===10) {
         const edge=1200*recordInches/24;
@@ -291,6 +338,7 @@ function previewLoop(now) {
         circle(ctx,600,600,edge*.37,'#2b473f',edge*.09);
         circle(ctx,600,600,4,'#eee',3);
       }
+      ctx.restore();
     } else {
       ctx.fillStyle='#dce1d4';ctx.textAlign='center';ctx.font='32px sans-serif';
       ctx.fillText('ここに回転プレビューが表示されます',600,600);
@@ -356,7 +404,7 @@ for(const ring of ['outer','inner','center']) $(''+ring+'-size').addEventListene
 for(const id of ['pattern-density','pattern-width','pattern-motif']) $(id).addEventListener('input',()=>{
   $(id+'-value').textContent=$(id).value+'%';schedulePreview();
 });
-$('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1;});
+$('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1; $('preview-rate-status').textContent=($('preview-rpm').value==='45'?'45':'33⅓')+'回転 / 30fps';});
 $('download-png').addEventListener('click',()=>exportPng(false));
 $('download-proof').addEventListener('click',()=>exportPng(true));
 const motionExample=$('prompt-motion').value;
@@ -392,3 +440,4 @@ exampleButton.addEventListener('click',()=>{
 syncControls();resetFrames();
 requestAnimationFrame(previewLoop);
 window.SlipmatMaker={countFor,sourceIndex,outerGeometry,innerGeometry,centerGeometry,drawArtwork};
+
