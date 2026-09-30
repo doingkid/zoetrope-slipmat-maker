@@ -134,9 +134,12 @@ footer small{grid-column:auto;grid-row:auto}
 
 
 /* Detail inspection and alpha preview; checkerboard is never exported. */
-.zoom-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px}
-.zoom-controls output{min-width:60px;text-align:center;font-variant-numeric:tabular-nums}
-.preview-card .turntable{overflow:hidden}
+.preview-card .turntable{overflow:hidden;position:relative}
+.preview-mode-label{position:absolute;left:clamp(12px,2vw,26px);top:clamp(12px,2vw,26px);z-index:1;padding:10px 13px;background:#d9ed7c;color:#111;font-weight:900;font-size:clamp(.84rem,1.5vw,1.05rem);pointer-events:none;box-shadow:0 2px 10px #0008}
+.preview-mode-label span{display:block;font-size:.72em;font-weight:700;margin-top:2px}
+#disc-canvas:focus-visible{outline:3px solid #d9ed7c;outline-offset:-5px}
 #disc-canvas{touch-action:none;cursor:grab;border-radius:0}
 #disc-canvas:active{cursor:grabbing}
 #disc-canvas.transparent-preview,#size-canvas.transparent-preview{background:repeating-conic-gradient(#777 0 25%,#aaa 0 50%) 50%/24px 24px}
+
+.preview-controls .field{grid-column:1/-1;max-width:540px}
