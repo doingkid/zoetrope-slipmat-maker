@@ -14,7 +14,7 @@
       <div id="top" class="hero-grid">
         <div class="hero-copy">
           <h1>キャラが踊る<br><em>スリップマットを作る</em></h1>
-          <p class="hero-description">画像1枚、または54枚の連番PNGから作成。<br>回転を確認して、完成PNGを保存できます。</p>
+          <p class="hero-description">画像1枚、または54枚の連番PNGから作成。<br>回転を確認して、完成PNG・PDFを保存できます。</p>
           <a class="hero-cta" href="#source-title">素材を選ぶ <span aria-hidden="true">↘</span></a>
         </div>
         <figure class="hero-example"><button id="example-spin-button" class="hero-example-button" type="button" data-mode="stop" data-rate="33" aria-pressed="false" aria-label="制作例を33⅓回転で回す"><img src="example-slipmat.png" alt="キャラと幾何学模様を並べたスリップマットの制作例" width="1200" height="1200"></button><figcaption id="example-spin-caption">制作例 · タップで33⅓回転</figcaption></figure>
@@ -88,7 +88,7 @@
     </section>
     <section class="card preview-card" aria-labelledby="preview-title">
       <div class="step"><span>03</span><h2 id="preview-title">回転を見て、画像を保存</h2></div>
-      <p class="section-intro">撮影時の見え方をチェック。仕上がったらPNGを保存。</p>
+      <p class="section-intro">撮影時の見え方をチェック。仕上がったらPNGまたはPDFを保存。</p>
       <div class="preview-layout">
         <div class="zoom-controls" role="group" aria-label="プレビューの拡大"><button id="zoom-out" type="button" class="secondary" aria-label="縮小">−</button><output id="zoom-value" aria-live="polite">100%</output><button id="zoom-in" type="button" class="secondary" aria-label="拡大">＋</button><button id="zoom-reset" type="button" class="secondary">全体表示</button></div><p class="hint">ピンチ・マウスホイールで拡大、拡大中はドラッグで移動できます。</p><div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
         <div class="preview-controls">
@@ -97,13 +97,15 @@
           <p id="preview-rate-status" class="status" role="status">33⅓回転 / 30fps</p><p class="hint">30fpsのカメラで撮影した場合の理想的な見え方を模擬します。実際の撮影では照明やシャッター速度でも見え方が変わります。</p>
           <p id="output-status" class="status" role="status">素材を選ぶと、ここで回転を確認できます。</p>
           <button id="download-png" type="button" disabled>完成PNGを保存</button>
+          <button id="download-pdf" type="button" class="secondary" disabled>完成PDFを保存（12インチ実寸）</button>
+          <p class="hint">PDFは304.8mm四方・300ppi相当の画像を配置します。透過背景は白になります。入稿条件は製作先にご確認ください。</p>
           <button id="download-proof" type="button" class="secondary" disabled>番号付き確認PNGを保存</button>
         </div>
       </div>
     </section>
     <section class="order-resources" aria-labelledby="order-title">
       <div class="step"><span>＋</span><h2 id="order-title">スリップマット製作先の参考</h2></div>
-      <p>完成画像を実物にしたいときの参考リンクです。価格・送料は2026年9月30日時点の各社掲載情報で、提携・発注保証はありません。<strong>このサイトのPNGをそのまま入稿できるとは限りません。</strong>サンユーの掲載形式にPNGはなく、ZAZAZA WORKSはIllustrator形式のみです。外径・中心穴・印刷範囲も発注前にご確認ください。</p>
+      <p>完成画像を実物にしたいときの参考リンクです。価格・送料は2026年9月30日時点の各社掲載情報で、提携・発注保証はありません。<strong>このサイトの画像・PDFをそのまま入稿できるとは限りません。</strong>サンユーの掲載形式にPNGはなく、ZAZAZA WORKSはIllustrator形式のみです。外径・中心穴・印刷範囲も発注前にご確認ください。</p>
       <div class="vendor-links">
         <a href="https://sanyumsc.com/index11/" target="_blank" rel="noopener noreferrer"><strong>サンユー（国内）</strong><span>1枚 5,500円・送料無料／到着日は要確認 ↗</span></a>
         <a href="https://zazazaworks.jp/products/detail/107" target="_blank" rel="noopener noreferrer"><strong>ZAZAZA WORKS（国内）</strong><span>1枚 5,280円＋送料／Illustrator入稿のみ ↗</span></a>
@@ -113,7 +115,8 @@
   </main>
   <footer><div class="shell footer-inner"><strong>SPINMAT</strong><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
-  <script src="app.js?v=16"></script>
+  <script src="pdf-export.js?v=1"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
 
