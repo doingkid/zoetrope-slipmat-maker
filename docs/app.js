@@ -25,7 +25,7 @@ function resetFrames() {
   state.generation++;
   state.frames = null;
   state.previewDisc = null;
-  for (const id of ['download-png', 'download-pdf', 'download-proof']) $(id).disabled = true;
+  for (const id of ['download-png', 'download-pdf']) $(id).disabled = true;
   $('frames-preview').hidden = true;
   const small=$('size-canvas').getContext('2d');
   small.clearRect(0,0,320,320);
@@ -179,7 +179,7 @@ function drawPattern(ctx, size, limit, count, theme, density = 1, stroke = 1, mo
     }
   }
 }
-function drawRing(ctx, frames, size, geometry, count, sign, positions) {
+function drawRing(ctx, frames, size, geometry, count, sign) {
   const center = size / 2;
   for (let i = 0; i < count; i++) {
     const bearing = sign * i * 2 * Math.PI / count;
@@ -188,10 +188,9 @@ function drawRing(ctx, frames, size, geometry, count, sign, positions) {
     ctx.save(); ctx.translate(x,y); ctx.rotate(bearing);
     ctx.drawImage(frames[sourceIndex(i,count)], -geometry.w/2,-geometry.h/2,geometry.w,geometry.h);
     ctx.restore();
-    if (positions) positions.push({ x, y, number: i+1 });
   }
 }
-function drawArtwork(size, proof = false) {
+function drawArtwork(size) {
   if (!state.frames) throw new Error('コマがありません。');
   const c = canvas(size,size), ctx = c.getContext('2d');
   const mid = size / 2, u = size / 3600;
@@ -237,24 +236,13 @@ function drawArtwork(size, proof = false) {
       }
     }
   }
-  const positions=[];
-  if ($('outer-rpm').value !== 'none') drawRing(ctx,state.frames,size,outer,outerCount,-1,proof ? positions : null);
-  if (inner) drawRing(ctx,state.frames,size,inner,innerCount,-1,null);
-  if (center) drawRing(ctx,state.frames,size,center,centerCount,-1,null);
+  if ($('outer-rpm').value !== 'none') drawRing(ctx,state.frames,size,outer,outerCount,-1);
+  if (inner) drawRing(ctx,state.frames,size,inner,innerCount,-1);
+  if (center) drawRing(ctx,state.frames,size,center,centerCount,-1);
   ctx.restore();
   if (background==='white') circle(ctx,mid,mid,mid-.5,'#000',Math.max(2,size/900));
   ctx.beginPath();ctx.arc(mid,mid,Math.max(1,size/DIAMETER_MM/2),0,2*Math.PI);
   ctx.fillStyle=background==='white'?'#000':'#fff';ctx.fill();
-  if (proof) {
-    ctx.fillStyle=background==='white'?'#000':'#ffeb59';ctx.font=`bold ${Math.max(12,size/105)}px sans-serif`;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    const labelR=outer.cap-outer.h-Math.max(25,size/80);
-    for (let i=0;i<($('outer-rpm').value === 'none' ? 0 : outerCount);i++) {
-      const bearing=-i*2*Math.PI/outerCount;
-      ctx.fillText(String(i+1),mid+labelR*Math.sin(bearing),mid-labelR*Math.cos(bearing));
-    }
-    if (inner) circle(ctx,mid,mid,inner.edge,ctx.fillStyle,Math.max(2,size/900));
-  }
   return c;
 }
 function updatePreview() {
@@ -354,14 +342,14 @@ function saveBlob(blob,name) {
   link.href=url;link.download=name;document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60_000);
 }
-async function exportPng(proof) {
+async function exportPng() {
   if (state.exporting || !state.frames) return;
   state.exporting=true;
-  const button=$(proof?'download-proof':'download-png');button.disabled=true;
+  const button=$('download-png');button.disabled=true;
   status('output-status','3600pxのPNGを書き出しています…');
   try { await new Promise(resolve=>setTimeout(resolve,40));
-    const output=drawArtwork(3600,proof);
-    saveBlob(await blobFromCanvas(output),proof?'slipmat_proof.png':'slipmat.png');
+    const output=drawArtwork(3600);
+    saveBlob(await blobFromCanvas(output),'slipmat.png');
     output.width=output.height=0;
     status('output-status','PNGを保存しました。iPhoneでは「ファイル」アプリのダウンロードも確認してください。');
   } catch(error) { status('output-status',`書き出せませんでした: ${error.message}`,true); }
@@ -409,7 +397,7 @@ async function prepareFrames() {
     if(!result || token!==state.generation)return;
     state.frames=result.frames;state.footFraction=result.footFraction;
     $('frames-preview').hidden=false;
-    for(const id of ['download-png','download-pdf','download-proof'])$(id).disabled=false;
+    for(const id of ['download-png','download-pdf'])$(id).disabled=false;
     status('source-status','54コマの準備ができました。');
     updatePreview();
   } catch(error){ if(token===state.generation)status('source-status',`読み込めませんでした: ${error.message}`,true); }
@@ -435,9 +423,8 @@ for(const id of ['pattern-density','pattern-width','pattern-motif']) $(id).addEv
   $(id+'-value').textContent=$(id).value+'%';schedulePreview();
 });
 $('preview-rpm').addEventListener('change',()=>{state.started=performance.now();state.lastFrame=-1; $('preview-rate-status').textContent=($('preview-rpm').value==='45'?'45':'33⅓')+'回転 / 30fps';});
-$('download-png').addEventListener('click',()=>exportPng(false));
+$('download-png').addEventListener('click',exportPng);
 $('download-pdf').addEventListener('click',exportPdf);
-$('download-proof').addEventListener('click',()=>exportPng(true));
 const motionExample=$('prompt-motion').value;
 const zipPromptTemplate=$('zip-prompt').value.replace(motionExample,'{{motion}}');
 $('prompt-motion').addEventListener('input',()=>{
