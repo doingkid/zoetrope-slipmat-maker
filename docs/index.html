@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111111">
   <title>Zoetrope Slipmat Maker</title>
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
   <header class="hero">
@@ -87,15 +87,14 @@
       </div>
     </section>
     <section class="card preview-card" aria-labelledby="preview-title">
-      <div class="step"><span>03</span><h2 id="preview-title">回転を見て、画像を保存</h2></div>
+      <div class="step"><span>03</span><h2 id="preview-title">回転プレビューと保存</h2></div>
       <p class="section-intro">撮影時の見え方をチェック。仕上がったらデータを保存。</p>
       <div class="preview-layout">
-        <div class="zoom-controls" role="group" aria-label="プレビューの拡大"><button id="zoom-out" type="button" class="secondary" aria-label="縮小">−</button><output id="zoom-value" aria-live="polite">100%</output><button id="zoom-in" type="button" class="secondary" aria-label="拡大">＋</button><button id="zoom-reset" type="button" class="secondary">全体表示</button></div><p class="hint">ピンチ・マウスホイールで拡大、拡大中はドラッグで移動できます。</p><div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" aria-label="回転中のスリップマットを30fpsで模擬表示"></canvas></div>
+        <p class="hint">プレビューをタップして回転を切り替え。ピンチ・マウスホイールで拡大、ドラッグで移動できます。</p><div class="turntable"><canvas id="disc-canvas" width="1200" height="1200" role="button" tabindex="0" aria-label="回転プレビュー、33⅓回転。タップで45回転"></canvas><div id="preview-mode-label" class="preview-mode-label" aria-live="polite">33⅓回転 <span>タップで45回転</span></div></div>
         <div class="preview-controls">
-          <div class="field"><label for="preview-rpm">プレビューの回転数</label><select id="preview-rpm"><option value="33.33">33⅓回転</option><option value="45">45回転</option></select></div>
           <div class="field"><label for="record-overlay">レコードを重ねて見る</label><select id="record-overlay"><option value="none">重ねない</option><option value="7">7インチ盤を重ねて見る</option><option value="10">10インチ盤を重ねて見る</option></select></div>
-          <p id="preview-rate-status" class="status" role="status">33⅓回転 / 30fps</p><p class="hint">30fpsのカメラで撮影した場合の理想的な見え方を模擬します。実際の撮影では照明やシャッター速度でも見え方が変わります。</p>
-          <p id="output-status" class="status" role="status">素材を選ぶと、ここで回転を確認できます。</p>
+          <p class="hint">30fpsを模擬。実際の見え方は撮影条件で変わります。</p>
+          <p id="output-status" class="status" role="status" hidden></p>
           <button id="download-pdf" type="button" disabled>印刷用PDFを保存（12インチ実寸）</button>
           <button id="download-png" type="button" class="secondary" disabled>PNGを保存</button>
           <p class="hint">PDFは304.8mm四方に3600×3600pxの画像を配置します。透過背景は白になります。</p>
@@ -113,7 +112,7 @@
   <footer><div class="shell footer-inner"><strong>SPINMAT</strong><small>画像処理はこの端末内で行います。<a href="https://github.com/doingkid/zoetrope-slipmat-maker">ソースコード ↗</a></small></div></footer>
   <script src="zip.js"></script>
   <script src="pdf-export.js?v=1"></script>
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>
 
