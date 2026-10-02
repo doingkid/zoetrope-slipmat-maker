@@ -149,3 +149,9 @@ footer small{grid-column:auto;grid-row:auto}
 .zoetrope-intro .section-intro{margin-bottom:16px}
 .zoetrope-intro .hint{margin:20px 0 0 64px}
 @media(max-width:650px){.zoetrope-intro .zoetrope-lead{margin-left:0}.zoetrope-intro .hint{margin-left:0}}
+
+/* Two-line descriptive wordmark in the header and footer. */
+.wordmark.brand-lockup,footer strong.brand-lockup{display:inline-flex;flex-direction:column;align-items:flex-start;gap:.3rem;font-family:Arial,Helvetica,sans-serif;font-size:clamp(1.25rem,2.5vw,1.7rem);line-height:1;font-weight:800;letter-spacing:-.035em;flex-shrink:0}
+.wordmark.brand-lockup>span,footer strong.brand-lockup>span{display:block;font-size:inherit;letter-spacing:inherit;vertical-align:baseline;margin:0}
+.wordmark.brand-lockup>.brand-sub,footer strong.brand-lockup>.brand-sub{font-size:.62rem;font-weight:600;letter-spacing:.12em;line-height:1.2}
+.topbar{gap:16px}
