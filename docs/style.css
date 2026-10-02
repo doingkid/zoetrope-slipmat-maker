@@ -155,3 +155,5 @@ footer small{grid-column:auto;grid-row:auto}
 .wordmark.brand-lockup>span,footer strong.brand-lockup>span{display:block;font-size:inherit;letter-spacing:inherit;vertical-align:baseline;margin:0}
 .wordmark.brand-lockup>.brand-sub,footer strong.brand-lockup>.brand-sub{font-size:.62rem;font-weight:600;letter-spacing:.12em;line-height:1.2}
 .topbar{gap:16px}
+
+.order-resources .vendor-reference{color:#d9ed7c;text-decoration:underline;text-underline-offset:.2em}
