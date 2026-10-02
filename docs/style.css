@@ -143,3 +143,9 @@ footer small{grid-column:auto;grid-row:auto}
 #disc-canvas.transparent-preview,#size-canvas.transparent-preview{background:repeating-conic-gradient(#777 0 25%,#aaa 0 50%) 50%/24px 24px}
 
 .preview-controls .field{grid-column:1/-1;max-width:540px}
+
+/* Chapter 00: a quiet lead-in to the mechanism. */
+.zoetrope-intro .zoetrope-lead{margin:22px 0 12px 64px;font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.4;font-weight:600;letter-spacing:.02em;color:#f3f2ec}
+.zoetrope-intro .section-intro{margin-bottom:16px}
+.zoetrope-intro .hint{margin:20px 0 0 64px}
+@media(max-width:650px){.zoetrope-intro .zoetrope-lead{margin-left:0}.zoetrope-intro .hint{margin-left:0}}
